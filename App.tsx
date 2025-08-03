@@ -1,89 +1,94 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 
-import React, { useState, useEffect } from 'react';
-import { ViewType, IClass, IStudent } from './types';
-import { initialClassesData, initialStudents, initialWaitlist } from './data/mockData';
+// Componentes de Layout
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+
+// Vistas (Páginas) de la aplicación
 import CalendarView from './views/CalendarView';
-import RatingsView from './views/RatingsView';
-import BranchesView from './views/BranchesView';
-import EmployeesView from './views/EmployeesView';
-import ClientsView from './views/ClientsView';
+import Clientes from './views/Clientes';
+import ClienteForm from './views/ClienteForm';
+import SucursalesView from './views/SucursalesView';
+import SucursalForm from './views/SucursalForm';
+import EmpleadosView from './views/EmpleadosView';
+import EmpleadoForm from './views/EmpleadoForm';
 import PaymentsView from './views/PaymentsView';
+import PagoForm from './views/PagoForm';
+import RatingsView from './views/RatingsView';
+import ClaseForm from './views/ClaseForm';
+import PlanesView from './views/PlanesView';
+import PlanForm from './views/PlanForm';
 
-const App: React.FC = () => {
-    const [currentView, setCurrentView] = useState<ViewType>('Calendario');
-    const [classes, setClasses] = useState<IClass[]>([]);
-    const [students, setStudents] = useState<{ [key: number]: IStudent[] }>(initialStudents);
-    const [waitlists, setWaitlists] = useState<{ [key: number]: IStudent[] }>(initialWaitlist);
+// --- NUEVOS COMPONENTES IMPORTADOS (CON RUTA CORREGIDA) ---
+import ClienteDetalle from './views/ClienteDetalle';
+import AsignarPlan from './views/AsignarPlan';
 
-    useEffect(() => {
-        const processedClasses = initialClassesData.map(c => {
-            const registeredCount = students[c.id]?.length || 0;
-            const isFull = registeredCount >= c.capacity;
-            const waitlistCount = isFull ? (waitlists[c.id]?.length || 0) : 0;
-            return { ...c, registered: registeredCount, waitlist: waitlistCount };
-        });
-        setClasses(processedClasses);
-    }, [students, waitlists]);
 
-    const handleCancelAndPromote = (classId: number, studentId: number) => {
-        setStudents(prevStudents => {
-            const classStudents = prevStudents[classId] || [];
-            const updatedClassStudents = classStudents.filter(s => s.id !== studentId);
-
-            const classWaitlist = waitlists[classId] || [];
-            if (classWaitlist.length > 0) {
-                const studentToPromote = classWaitlist[0];
-                updatedClassStudents.push(studentToPromote);
-                
-                setWaitlists(prevWaitlists => ({
-                    ...prevWaitlists,
-                    [classId]: prevWaitlists[classId].slice(1),
-                }));
-            }
-            
-            return {
-                ...prevStudents,
-                [classId]: updatedClassStudents,
-            };
-        });
-    };
-
-    const renderView = () => {
-        switch (currentView) {
-            case 'Calendario':
-                return <CalendarView classes={classes} students={students} waitlists={waitlists} handleCancelAndPromote={handleCancelAndPromote} />;
-            case 'Calificacion':
-                return <RatingsView />;
-            case 'Sucursales':
-                return <BranchesView />;
-            case 'Empleados':
-                return <EmployeesView />;
-            case 'Clientes':
-                return <ClientsView />;
-            case 'Pagos':
-                return <PaymentsView />;
-            default:
-                return (
-                    <div className="text-center p-10 bg-white rounded-lg shadow">
-                        <h2 className="text-xl font-semibold">Módulo de {currentView}</h2>
-                        <p className="text-gray-500 mt-2">Este módulo está en construcción.</p>
-                    </div>
-                );
-        }
-    };
-
+// --- Componente de Layout Principal ---
+const AppLayout: React.FC = () => {
     return (
         <div className="flex h-screen bg-gray-100 text-gray-800">
-            <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+            <Sidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header />
                 <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
-                    {renderView()}
+                    <Outlet />
                 </main>
             </div>
         </div>
+    );
+};
+
+
+const App: React.FC = () => {
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* --- Rutas dentro del Layout Principal --- */}
+                <Route path="/" element={<AppLayout />}>
+                    
+                    <Route index element={<CalendarView />} /> 
+                    <Route path="/calendario" element={<CalendarView />} />
+                    
+                    {/* Módulo de Clientes (ACTUALIZADO) */}
+                    <Route path="/clientes" element={<Clientes />} />
+                    <Route path="/clientes/nuevo" element={<ClienteForm />} />
+                    <Route path="/clientes/editar/:id" element={<ClienteForm />} />
+                    {/* --- NUEVAS RUTAS AÑADIDAS --- */}
+                    <Route path="/clientes/detalle/:id" element={<ClienteDetalle />} />
+                    <Route path="/clientes/:id/asignar-plan" element={<AsignarPlan />} />
+
+                    {/* Módulo de Sucursales */}
+                    <Route path="/sucursales" element={<SucursalesView />} />
+                    <Route path="/sucursales/nuevo" element={<SucursalForm />} />
+                    <Route path="/sucursales/editar/:id" element={<SucursalForm />} />
+                    
+                    {/* Módulo de Empleados */}
+                    <Route path="/empleados" element={<EmpleadosView />} />
+                    <Route path="/empleados/nuevo" element={<EmpleadoForm />} />
+                    <Route path="/empleados/editar/:id" element={<EmpleadoForm />} />
+
+                    {/* Módulo de Pagos */}
+                    <Route path="/pagos" element={<PaymentsView />} />
+                    <Route path="/pagos/nuevo" element={<PagoForm />} />
+                    <Route path="/pagos/editar/:id" element={<PagoForm />} />
+                    
+                    {/* Módulo de Calificación */}
+                    <Route path="/calificacion" element={<RatingsView />} />
+
+                    {/* Módulo de Clases */}
+                    <Route path="/clases/nueva" element={<ClaseForm />} />
+                    <Route path="/clases/editar/:id" element={<ClaseForm />} />
+
+                    {/* Módulo de Planes */}
+                    <Route path="/planes" element={<PlanesView />} />
+                    <Route path="/planes/nuevo" element={<PlanForm />} />
+                    <Route path="/planes/editar/:id" element={<PlanForm />} />
+
+                </Route>
+            </Routes>
+        </BrowserRouter>
     );
 }
 

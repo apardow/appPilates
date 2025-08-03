@@ -1,67 +1,160 @@
+import React, { useState, useEffect } from 'react';
+import { RiStarSFill, RiStarSLine } from 'react-icons/ri';
 
-import React, { useState, useMemo } from 'react';
-import { initialRatings, initialBranches } from '../data/mockData';
-import StarRating from '../components/StarRating';
+// --- Interfaces para los datos que vamos a manejar ---
+interface Calificacion {
+    id: number;
+    calificacion: number;
+    comentario: string;
+    // Asumimos que la API nos devolverá objetos anidados con la información relacionada
+    sucursal: { nombre: string };
+    empleado: { nombre: string, apellido_paterno: string };
+    cliente: { nombre: string, apellido: string };
+    servicio: { nombre: string }; // Suponiendo que hay una tabla de servicios
+    created_at: string;
+}
+
+interface Sucursal {
+    id: number;
+    nombre: string;
+}
+
+interface Empleado {
+    id: number;
+    nombre: string;
+    apellido_paterno: string;
+}
+
+// Componente para renderizar las estrellas de calificación
+const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
+    const totalStars = 5;
+    return (
+        <div className="flex">
+            {[...Array(totalStars)].map((_, index) => {
+                const starValue = index + 1;
+                return (
+                    <span key={starValue}>
+                        {starValue <= rating ? (
+                            <RiStarSFill className="text-yellow-400" />
+                        ) : (
+                            <RiStarSLine className="text-gray-300" />
+                        )}
+                    </span>
+                );
+            })}
+        </div>
+    );
+};
+
 
 const RatingsView: React.FC = () => {
-    const [filters, setFilters] = useState({ branch: 'all', service: 'all', monitor: 'all' });
+    // Estados para los datos
+    const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
+    const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+    const [empleados, setEmpleados] = useState<Empleado[]>([]);
+    
+    // Estados para los filtros
+    const [filtros, setFiltros] = useState({
+        sucursal: '',
+        servicio: '',
+        monitor: ''
+    });
+
+    // Estados de UI
+    const [cargando, setCargando] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // useEffect para cargar todos los datos iniciales (calificaciones, sucursales, empleados)
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Usamos Promise.all para hacer todas las llamadas a la API en paralelo
+                const [calificacionesRes, sucursalesRes, empleadosRes] = await Promise.all([
+                    fetch('https://api.espaciopilatescl.cl/api/calificaciones'),
+                    fetch('https://api.espaciopilatescl.cl/api/sucursales'),
+                    fetch('https://api.espaciopilatescl.cl/api/empleados')
+                ]);
+
+                if (!calificacionesRes.ok || !sucursalesRes.ok || !empleadosRes.ok) {
+                    throw new Error('Error al cargar los datos iniciales.');
+                }
+
+                const calificacionesData = await calificacionesRes.json();
+                const sucursalesData = await sucursalesRes.json();
+                const empleadosData = await empleadosRes.json();
+
+                setCalificaciones(calificacionesData);
+                setSucursales(sucursalesData);
+                setEmpleados(empleadosData);
+
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setCargando(false);
+            }
+        };
+        fetchData();
+    }, []);
+    
+    // Lógica para filtrar las calificaciones (esto se podría hacer en el backend para mayor eficiencia)
+    const calificacionesFiltradas = calificaciones.filter(cal => {
+        const pasaFiltroSurcursal = !filtros.sucursal || cal.sucursal.nombre === filtros.sucursal;
+        const pasaFiltroServicio = !filtros.servicio || cal.servicio.nombre === filtros.servicio;
+        const pasaFiltroMonitor = !filtros.monitor || `${cal.empleado.nombre} ${cal.empleado.apellido_paterno}` === filtros.monitor;
+        return pasaFiltroSurcursal && pasaFiltroServicio && pasaFiltroMonitor;
+    });
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setFiltros(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const monitors = [...new Set(initialRatings.map(c => c.monitor))];
-    const services = [...new Set(initialRatings.map(c => c.service))];
-    
-    const filteredRatings = useMemo(() => initialRatings.filter(c =>
-        (filters.branch === 'all' || c.branch === filters.branch) &&
-        (filters.service === 'all' || c.service === filters.service) &&
-        (filters.monitor === 'all' || c.monitor === filters.monitor)
-    ), [filters]);
+    if (cargando) return <div className="p-8 text-center">Cargando calificaciones...</div>;
+    if (error) return <div className="p-8"><div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert"><p className="font-bold">Error</p><p>{error}</p></div></div>;
 
     return (
-        <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Calificación de Servicios</h2>
-            <div className="bg-white p-4 rounded-lg shadow mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-                    <select name="branch" onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-white focus:ring-purple-500 focus:border-purple-500">
-                        <option value="all">Todas las Sucursales</option>
-                        {initialBranches.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                    </select>
-                    <select name="service" onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-white focus:ring-purple-500 focus:border-purple-500">
-                        <option value="all">Todos los Servicios</option>
-                        {services.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <select name="monitor" onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-white focus:ring-purple-500 focus:border-purple-500">
-                        <option value="all">Todos los Monitores</option>
-                        {monitors.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                    <button className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors w-full">Filtrar</button>
-                </div>
+        <div className="p-4 md:p-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Calificación de Servicios</h1>
+            
+            {/* Filtros */}
+            <div className="bg-white p-4 rounded-xl shadow-md mb-6 flex flex-wrap gap-4 items-center">
+                <select name="sucursal" onChange={handleFilterChange} className="p-2 border rounded-md bg-gray-50">
+                    <option value="">Todas las Sucursales</option>
+                    {sucursales.map(s => <option key={s.id} value={s.nombre}>{s.nombre}</option>)}
+                </select>
+                <select name="servicio" onChange={handleFilterChange} className="p-2 border rounded-md bg-gray-50">
+                    <option value="">Todos los Servicios</option>
+                    {/* Estos podrían venir de la API en el futuro */}
+                    <option>Pilates Reformer</option>
+                    <option>Pilates Mat</option>
+                </select>
+                <select name="monitor" onChange={handleFilterChange} className="p-2 border rounded-md bg-gray-50">
+                    <option value="">Todos los Monitores</option>
+                    {empleados.map(e => <option key={e.id} value={`${e.nombre} ${e.apellido_paterno}`}>{e.nombre} {e.apellido_paterno}</option>)}
+                </select>
             </div>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <table className="w-full min-w-max">
-                    <thead className="bg-gray-50">
+
+            {/* Tabla de Calificaciones */}
+            <div className="bg-white rounded-xl shadow-md overflow-x-auto">
+                <table className="w-full text-sm text-left text-gray-500">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                         <tr>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calificación</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sucursal</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monitor</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingreso</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comentarios</th>
+                            <th className="px-6 py-3">Calificación</th>
+                            <th className="px-6 py-3">Sucursal</th>
+                            <th className="px-6 py-3">Monitor</th>
+                            <th className="px-6 py-3">Cliente</th>
+                            <th className="px-6 py-3">Comentario</th>
+                            <th className="px-6 py-3">Fecha</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {filteredRatings.map(item => (
-                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="p-4 whitespace-nowrap"><StarRating rating={item.rating} /></td>
-                                <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.service}</td>
-                                <td className="p-4 whitespace-nowrap text-sm text-gray-500">{item.branch}</td>
-                                <td className="p-4 whitespace-nowrap text-sm text-gray-500">{item.monitor}</td>
-                                <td className="p-4 whitespace-nowrap text-sm text-gray-500">{item.date}</td>
-                                <td className="p-4 whitespace-nowrap text-sm text-gray-500">{item.client}</td>
-                                <td className="p-4 text-sm text-gray-600 max-w-xs">{item.comment}</td>
+                    <tbody>
+                        {calificacionesFiltradas.map(cal => (
+                            <tr key={cal.id} className="bg-white border-b hover:bg-gray-50">
+                                <td className="px-6 py-4"><StarRating rating={cal.calificacion} /></td>
+                                <td className="px-6 py-4">{cal.sucursal.nombre}</td>
+                                <td className="px-6 py-4">{cal.empleado.nombre} {cal.empleado.apellido_paterno}</td>
+                                <td className="px-6 py-4">{cal.cliente.nombre} {cal.cliente.apellido}</td>
+                                <td className="px-6 py-4">{cal.comentario}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{new Date(cal.created_at).toLocaleDateString()}</td>
                             </tr>
                         ))}
                     </tbody>

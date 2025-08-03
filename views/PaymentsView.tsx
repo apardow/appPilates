@@ -1,104 +1,84 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { RiAddLine, RiPencilLine, RiDeleteBinLine } from 'react-icons/ri';
 
-import React, { useState } from 'react';
-import { IPaymentMethod } from '../types';
-import { initialPaymentMethods } from '../data/mockData';
-import { Plus, Edit } from '../components/Icons';
-
-const PaymentMethodForm: React.FC<{ method: IPaymentMethod | null; onBack: () => void; onSave: (data: IPaymentMethod) => void }> = ({ method, onBack, onSave }) => {
-    const [formData, setFormData] = useState<Omit<IPaymentMethod, 'id'> & { id?: number }>(
-        method || { name: '', description: '', status: 'Habilitado' }
-    );
-    
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave({ ...formData, id: formData.id || Date.now() } as IPaymentMethod);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-gray-800">{method ? 'Editar Método de Pago' : 'Crear Método de Pago'}</h2>
-                <div>
-                    <button type="button" onClick={onBack} className="text-gray-600 bg-gray-200 py-2 px-4 rounded-lg mr-2 hover:bg-gray-300 transition-colors">Cancelar</button>
-                    <button type="submit" className="text-white bg-purple-600 font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">Guardar</button>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Tarjeta de Crédito" className="w-full p-2 border rounded-md focus:ring-purple-500 focus:border-purple-500" />
-                </div>
-                <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                    <input name="description" value={formData.description} onChange={handleChange} placeholder="Descripción breve" className="w-full p-2 border rounded-md focus:ring-purple-500 focus:border-purple-500" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                    <select name="status" value={formData.status} onChange={handleChange} className="w-full p-2 border rounded-md bg-white focus:ring-purple-500 focus:border-purple-500">
-                        <option>Habilitado</option>
-                        <option>Deshabilitado</option>
-                    </select>
-                </div>
-            </div>
-        </form>
-    );
-};
+// Interfaz para la estructura de un Método de Pago
+interface MetodoPago {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    habilitado: boolean | number;
+}
 
 const PaymentsView: React.FC = () => {
-    const [view, setView] = useState('list');
-    const [selectedMethod, setSelectedMethod] = useState<IPaymentMethod | null>(null);
+    const [metodos, setMetodos] = useState<MetodoPago[]>([]);
+    const [cargando, setCargando] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSelect = (metodo: IPaymentMethod) => { setSelectedMethod(metodo); setView('form'); };
-    const handleCreateNew = () => { setSelectedMethod(null); setView('form'); };
-    const handleBackToList = () => { setView('list'); setSelectedMethod(null); };
-    const handleSave = (data: IPaymentMethod) => {
-        console.log("Guardando método de pago:", data);
-        handleBackToList();
-    };
+    useEffect(() => {
+        const fetchMetodosPago = async () => {
+            try {
+                const response = await fetch('https://api.espaciopilatescl.cl/api/metodos-pago');
+                if (!response.ok) throw new Error('No se pudo obtener la lista de métodos de pago.');
+                const data: MetodoPago[] = await response.json();
+                setMetodos(data);
+            } catch (err) {
+                setError('Ocurrió un error al cargar los datos.');
+                console.error("Error fetching metodos de pago:", err);
+            } finally {
+                setCargando(false);
+            }
+        };
+        fetchMetodosPago();
+    }, []);
 
-    if (view === 'form') {
-        return <PaymentMethodForm method={selectedMethod} onBack={handleBackToList} onSave={handleSave} />;
-    }
+    if (cargando) return <div className="p-8 text-center">Cargando métodos de pago...</div>;
+    if (error) return <div className="p-8"><div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert"><p className="font-bold">Error</p><p>{error}</p></div></div>;
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Métodos de Pago</h2>
-                <button onClick={handleCreateNew} className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 flex items-center transition-colors">
-                    <Plus size={20} className="mr-2" />Crear Método
-                </button>
-            </div>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {initialPaymentMethods.map(item => (
-                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="p-4 text-sm font-medium text-gray-900">{item.name}</td>
-                                <td className="p-4 text-sm text-gray-500">{item.description}</td>
-                                <td className="p-4">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status === 'Habilitado' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{item.status}</span>
-                                </td>
-                                <td className="p-4 text-sm font-medium">
-                                    <button onClick={() => handleSelect(item)} className="text-purple-600 hover:text-purple-900 flex items-center transition-colors">
-                                        <Edit size={16} className="mr-1" /> Editar
-                                    </button>
-                                </td>
+        <div className="p-4 md:p-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Métodos de Pago</h1>
+             <div className="bg-white p-6 rounded-xl shadow-md">
+                <div className="flex justify-end items-center mb-4">
+                    <Link 
+                        to="/pagos/nuevo"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        <RiAddLine />
+                        Agregar Método de Pago
+                    </Link>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                            <tr>
+                                <th scope="col" className="px-6 py-3">Nombre</th>
+                                <th scope="col" className="px-6 py-3">Descripción</th>
+                                <th scope="col" className="px-6 py-3 text-center">Estado</th>
+                                <th scope="col" className="px-6 py-3 text-center">Acciones</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {metodos.map((metodo) => (
+                                <tr key={metodo.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-6 py-4 font-medium text-gray-900">{metodo.nombre}</td>
+                                    <td className="px-6 py-4">{metodo.descripcion}</td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${metodo.habilitado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {metodo.habilitado ? 'Habilitado' : 'Deshabilitado'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <div className="flex justify-center items-center gap-2">
+                                            <Link to={`/pagos/editar/${metodo.id}`} className="text-blue-500 hover:text-blue-700"><RiPencilLine size={20} /></Link>
+                                            <button className="text-red-500 hover:text-red-700"><RiDeleteBinLine size={20} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
