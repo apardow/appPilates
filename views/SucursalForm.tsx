@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+// Interfaz actualizada para incluir la URL de la foto
 interface SucursalData {
     nombre: string;
     codigo: string;
     direccion: string;
     habilitado: boolean | number;
+    foto_url?: string | null;
 }
 
 const SucursalForm: React.FC = () => {
@@ -16,8 +18,13 @@ const SucursalForm: React.FC = () => {
         nombre: '',
         codigo: '',
         direccion: '',
-        habilitado: 1, // Por defecto, una nueva sucursal está habilitada
+        habilitado: 1,
+        foto_url: null,
     });
+
+    // Nuevos estados para manejar el archivo de la foto y su previsualización
+    const [foto, setFoto] = useState<File | null>(null);
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
 
     const [cargando, setCargando] = useState<boolean>(false);
     const [guardando, setGuardando] = useState<boolean>(false);
@@ -25,19 +32,34 @@ const SucursalForm: React.FC = () => {
 
     const isEditing = Boolean(id);
 
+    // --- useEffect CORREGIDO usando el patrón de EmpleadoForm.tsx ---
     useEffect(() => {
-        if (isEditing) {
-            setCargando(true);
-            fetch(`https://api.espaciopilatescl.cl/api/sucursales/${id}`)
-                .then(res => res.json())
-                .then((data: SucursalData) => setSucursal(data))
-                .catch(() => setError('No se pudo cargar la información de la sucursal.'))
-                .finally(() => setCargando(false));
-        }
+        const fetchSucursalData = async () => {
+            if (isEditing) {
+                setCargando(true);
+                try {
+                    const response = await fetch(`https://api.espaciopilatescl.cl/api/sucursales/${id}`);
+                    if (!response.ok) {
+                        throw new Error('No se pudo encontrar la sucursal.');
+                    }
+                    const data: SucursalData = await response.json();
+                    setSucursal(data);
+                    if (data.foto_url) {
+                        setFotoPreview(data.foto_url);
+                    }
+                } catch (err: any) {
+                    setError(err.message);
+                } finally {
+                    setCargando(false);
+                }
+            }
+        };
+
+        fetchSucursalData();
     }, [id, isEditing]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
+        const { name, value } = e.target;
         const isToggle = name === 'habilitado';
         setSucursal(prevState => ({ 
             ...prevState, 
@@ -45,24 +67,50 @@ const SucursalForm: React.FC = () => {
         }));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setFoto(file);
+            setFotoPreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setGuardando(true);
         setError(null);
 
-        // Al crear, enviamos un objeto sin el campo 'codigo' para que el backend lo genere
-        const dataToSend = isEditing ? sucursal : { ...sucursal, codigo: '' };
+        const formData = new FormData();
+        formData.append('nombre', sucursal.nombre);
+        formData.append('direccion', sucursal.direccion);
+        formData.append('habilitado', String(sucursal.habilitado));
+        
+        if (foto) {
+            formData.append('foto', foto);
+        }
 
-        const url = isEditing ? `https://api.espaciopilatescl.cl/api/sucursales/${id}` : 'https://api.espaciopilatescl.cl/api/sucursales';
-        const method = isEditing ? 'PUT' : 'POST';
+        if (isEditing) {
+            formData.append('_method', 'PUT');
+            // --- CORRECCIÓN: Se añade el código al actualizar ---
+            formData.append('codigo', sucursal.codigo);
+        }
 
+        const url = isEditing 
+            ? `https://api.espaciopilatescl.cl/api/sucursales/${id}` 
+            : 'https://api.espaciopilatescl.cl/api/sucursales';
+        
         try {
             const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(dataToSend)
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: formData
             });
-            if (!response.ok) throw new Error('Ocurrió un error al guardar la sucursal.');
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage = errorData.message || 'Ocurrió un error al guardar.';
+                throw new Error(errorMessage);
+            }
             navigate('/sucursales');
         } catch (err: any) {
             setError(err.message);
@@ -84,27 +132,35 @@ const SucursalForm: React.FC = () => {
                         <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">Nombre</label>
                         <input type="text" name="nombre" id="nombre" value={sucursal.nombre} onChange={handleInputChange} required className={inputStyle} />
                     </div>
-                    <div>
-                        <label htmlFor="codigo" className="block text-sm font-medium text-gray-700">Código</label>
-                        <input
-                            type="text"
-                            name="codigo"
-                            id="codigo"
-                            value={sucursal.codigo}
-                            onChange={handleInputChange}
-                            required={isEditing} // El código solo es requerido si estamos editando
-                            disabled={!isEditing} // El campo está deshabilitado al crear
-                            placeholder={isEditing ? 'Código existente' : 'Se generará automáticamente'}
-                            className={`${inputStyle} disabled:bg-gray-200 disabled:cursor-not-allowed`}
-                        />
-                    </div>
+                    {isEditing && (
+                        <div>
+                            <label htmlFor="codigo" className="block text-sm font-medium text-gray-700">Código</label>
+                            <input
+                                type="text"
+                                name="codigo"
+                                id="codigo"
+                                value={sucursal.codigo}
+                                readOnly
+                                className={`${inputStyle} bg-gray-200 cursor-not-allowed`}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label htmlFor="direccion" className="block text-sm font-medium text-gray-700">Dirección</label>
                         <input type="text" name="direccion" id="direccion" value={sucursal.direccion} onChange={handleInputChange} required className={inputStyle} />
                     </div>
                     <div>
+                        <label htmlFor="foto" className="block text-sm font-medium text-gray-700">Foto de la Sucursal</label>
+                        <input type="file" name="foto" id="foto" onChange={handleFileChange} accept="image/*" className={`${inputStyle} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100`} />
+                        {fotoPreview && (
+                            <div className="mt-4">
+                                <img src={fotoPreview} alt="Vista previa de la sucursal" className="w-full h-48 object-cover rounded-md" />
+                            </div>
+                        )}
+                    </div>
+                    <div>
                         <label htmlFor="habilitado" className="block text-sm font-medium text-gray-700">Estado</label>
-                        <select name="habilitado" id="habilitado" value={sucursal.habilitado} onChange={handleInputChange} className={inputStyle}>
+                        <select name="habilitado" id="habilitado" value={Number(sucursal.habilitado)} onChange={handleInputChange} className={inputStyle}>
                             <option value={1}>Habilitado</option>
                             <option value={0}>Deshabilitado</option>
                         </select>

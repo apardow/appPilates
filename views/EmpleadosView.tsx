@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RiSearchLine, RiAddLine, RiPencilLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiSearchLine, RiAddLine, RiPencilLine, RiDeleteBinLine, RiEyeLine } from 'react-icons/ri';
 
 // Interfaz para la estructura de datos de un Empleado
 interface Empleado {
@@ -89,9 +89,17 @@ const EmpleadosView: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <div className="flex justify-center items-center gap-2">
-                                            <Link to={`/empleados/editar/${empleado.id}`} className="text-blue-500 hover:text-blue-700"><RiPencilLine size={20} /></Link>
-                                            <button className="text-red-500 hover:text-red-700"><RiDeleteBinLine size={20} /></button>
+                                        <div className="flex justify-center items-center gap-3">
+                                            {/* --- ICONO DE OJO AÑADIDO --- */}
+                                            <Link to={`/empleados/editar/${empleado.id}`} className="text-gray-500 hover:text-gray-700" title="Ver Detalle">
+                                                <RiEyeLine size={20} />
+                                            </Link>
+                                            <Link to={`/empleados/editar/${empleado.id}`} className="text-blue-500 hover:text-blue-700" title="Editar Empleado">
+                                                <RiPencilLine size={20} />
+                                            </Link>
+                                            <button className="text-red-500 hover:text-red-700" title="Eliminar Empleado">
+                                                <RiDeleteBinLine size={20} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

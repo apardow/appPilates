@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
 // Componentes de Layout
 import Sidebar from './components/Sidebar';
@@ -19,77 +19,87 @@ import RatingsView from './views/RatingsView';
 import ClaseForm from './views/ClaseForm';
 import PlanesView from './views/PlanesView';
 import PlanForm from './views/PlanForm';
-
-// --- NUEVOS COMPONENTES IMPORTADOS (CON RUTA CORREGIDA) ---
 import ClienteDetalle from './views/ClienteDetalle';
 import AsignarPlan from './views/AsignarPlan';
-
+// --- IMPORTACIONES NUEVAS ---
+import ServiciosView from './views/ServiciosView';
+import ServicioForm from './views/ServicioForm';
+// 👇 NUEVO: vista de Alumna
+import AlumnaDashboard from './views/AlumnaDashboard';
 
 // --- Componente de Layout Principal ---
 const AppLayout: React.FC = () => {
-    return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
-                    <Outlet />
-                </main>
-            </div>
-        </div>
-    );
+  return (
+    <div className="flex h-screen bg-gray-100 text-gray-800">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 };
 
-
 const App: React.FC = () => {
-    return (
-        <BrowserRouter>
-            <Routes>
-                {/* --- Rutas dentro del Layout Principal --- */}
-                <Route path="/" element={<AppLayout />}>
-                    
-                    <Route index element={<CalendarView />} /> 
-                    <Route path="/calendario" element={<CalendarView />} />
-                    
-                    {/* Módulo de Clientes (ACTUALIZADO) */}
-                    <Route path="/clientes" element={<Clientes />} />
-                    <Route path="/clientes/nuevo" element={<ClienteForm />} />
-                    <Route path="/clientes/editar/:id" element={<ClienteForm />} />
-                    {/* --- NUEVAS RUTAS AÑADIDAS --- */}
-                    <Route path="/clientes/detalle/:id" element={<ClienteDetalle />} />
-                    <Route path="/clientes/:id/asignar-plan" element={<AsignarPlan />} />
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* --- Todas las rutas son públicas y están dentro del Layout --- */}
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Navigate to="/calendario" replace />} />
+          <Route path="calendario" element={<CalendarView />} />
 
-                    {/* Módulo de Sucursales */}
-                    <Route path="/sucursales" element={<SucursalesView />} />
-                    <Route path="/sucursales/nuevo" element={<SucursalForm />} />
-                    <Route path="/sucursales/editar/:id" element={<SucursalForm />} />
-                    
-                    {/* Módulo de Empleados */}
-                    <Route path="/empleados" element={<EmpleadosView />} />
-                    <Route path="/empleados/nuevo" element={<EmpleadoForm />} />
-                    <Route path="/empleados/editar/:id" element={<EmpleadoForm />} />
+          {/* --- RUTA DE REDIRECCIÓN AÑADIDA --- */}
+          {/* Si se intenta ir a /calendar, redirige a /calendario. */}
+          <Route path="calendar" element={<Navigate to="/calendario" replace />} />
 
-                    {/* Módulo de Pagos */}
-                    <Route path="/pagos" element={<PaymentsView />} />
-                    <Route path="/pagos/nuevo" element={<PagoForm />} />
-                    <Route path="/pagos/editar/:id" element={<PagoForm />} />
-                    
-                    {/* Módulo de Calificación */}
-                    <Route path="/calificacion" element={<RatingsView />} />
+          {/* Módulo de Clientes */}
+          <Route path="clientes" element={<Clientes />} />
+          <Route path="clientes/nuevo" element={<ClienteForm />} />
+          <Route path="clientes/editar/:id" element={<ClienteForm />} />
+          <Route path="clientes/detalle/:id" element={<ClienteDetalle />} />
+          <Route path="clientes/:id/asignar-plan" element={<AsignarPlan />} />
 
-                    {/* Módulo de Clases */}
-                    <Route path="/clases/nueva" element={<ClaseForm />} />
-                    <Route path="/clases/editar/:id" element={<ClaseForm />} />
+          {/* Módulo de Sucursales */}
+          <Route path="sucursales" element={<SucursalesView />} />
+          <Route path="sucursales/nuevo" element={<SucursalForm />} />
+          <Route path="sucursales/editar/:id" element={<SucursalForm />} />
 
-                    {/* Módulo de Planes */}
-                    <Route path="/planes" element={<PlanesView />} />
-                    <Route path="/planes/nuevo" element={<PlanForm />} />
-                    <Route path="/planes/editar/:id" element={<PlanForm />} />
+          {/* Módulo de Empleados */}
+          <Route path="empleados" element={<EmpleadosView />} />
+          <Route path="empleados/nuevo" element={<EmpleadoForm />} />
+          <Route path="empleados/editar/:id" element={<EmpleadoForm />} />
 
-                </Route>
-            </Routes>
-        </BrowserRouter>
-    );
-}
+          {/* Módulo de Pagos */}
+          <Route path="pagos" element={<PaymentsView />} />
+          <Route path="pagos/nuevo" element={<PagoForm />} />
+          <Route path="pagos/editar/:id" element={<PagoForm />} />
+
+          {/* Módulo de Calificación */}
+          <Route path="calificacion" element={<RatingsView />} />
+
+          {/* Módulo de Clases */}
+          <Route path="clases/nueva" element={<ClaseForm />} />
+          <Route path="clases/editar/:id" element={<ClaseForm />} />
+
+          {/* Módulo de Planes */}
+          <Route path="planes" element={<PlanesView />} />
+          <Route path="planes/nuevo" element={<PlanForm />} />
+          <Route path="planes/editar/:id" element={<PlanForm />} />
+
+          {/* --- RUTAS NUEVAS PARA SERVICIOS --- */}
+          <Route path="servicios" element={<ServiciosView />} />
+          <Route path="servicios/nuevo" element={<ServicioForm />} />
+          <Route path="servicios/editar/:id" element={<ServicioForm />} />
+
+          {/* --- RUTA NUEVA: DASHBOARD DE ALUMNA --- */}
+          <Route path="alumna/:id" element={<AlumnaDashboard />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
 export default App;

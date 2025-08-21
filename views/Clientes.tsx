@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RiSearchLine, RiAddLine, RiEyeLine, RiPencilLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiSearchLine, RiAddLine, RiEyeLine, RiPencilLine, RiDashboardLine } from 'react-icons/ri';
 
-// --- Interfaz Actualizada ---
+// --- Interfaz Actualizada con nuevos estados ---
 interface Cliente {
     id: number;
     nombre: string;
     apellido: string;
     telefono: string | null;
+    // 1: Activo, 2: Inactivo. El estado 3 (Bloqueado) no se mostrará en esta lista.
+    activo: number;
     usuario: {
         email: string;
     };
-    // Agrega aquí cualquier otro campo que venga de tu API
 }
 
 const Clientes: React.FC = () => {
@@ -23,6 +24,7 @@ const Clientes: React.FC = () => {
     useEffect(() => {
         const fetchClientes = async () => {
             try {
+                // El backend se encargará de enviar solo los clientes activos e inactivos
                 const response = await fetch('https://api.espaciopilatescl.cl/api/clientes');
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
@@ -30,8 +32,8 @@ const Clientes: React.FC = () => {
                 const data: Cliente[] = await response.json();
                 setClientes(data);
             } catch (err) {
-                console.error("Error al obtener los datos de clientes:", err);
-                setError("No se pudo cargar la lista de clientes. Revisa la conexión con la API.");
+                console.error("Error al obtener los datos de alumnas:", err);
+                setError("No se pudo cargar la lista de alumnas. Revisa la conexión con la API.");
             } finally {
                 setCargando(false);
             }
@@ -45,11 +47,18 @@ const Clientes: React.FC = () => {
     );
 
     if (cargando) {
-        return <div className="p-8 text-center text-gray-500">Cargando clientes...</div>;
+        return <div className="p-8 text-center text-gray-500">Cargando alumnas...</div>;
     }
 
     if (error) {
-        return <div className="p-8"><div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert"><p className="font-bold">Error</p><p>{error}</p></div></div>;
+        return (
+            <div className="p-8">
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
+                    <p className="font-bold">Error</p>
+                    <p>{error}</p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -59,7 +68,7 @@ const Clientes: React.FC = () => {
                 <div className="lg:col-span-1">
                     <div className="bg-white p-6 rounded-xl shadow-md mb-6 text-center">
                         <h2 className="text-5xl font-bold text-gray-800">{clientesFiltrados.length}</h2>
-                        <p className="text-gray-500 mt-2">Usuarios encontrados</p>
+                        <p className="text-gray-500 mt-2">Alumnas encontradas</p>
                     </div>
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h3 className="font-bold text-gray-800 mb-4">Más recientes...</h3>
@@ -80,16 +89,16 @@ const Clientes: React.FC = () => {
                                 <input
                                     type="text"
                                     className="bg-gray-100 w-full md:w-80 outline-none py-2 px-4 pl-10 rounded-lg"
-                                    placeholder="Buscar cliente..."
+                                    placeholder="Buscar alumna..."
                                     value={busqueda}
                                     onChange={(e) => setBusqueda(e.target.value)}
                                 />
                             </div>
-                            <Link 
+                            <Link
                                 to="/clientes/nuevo"
                                 className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
                                 <RiAddLine />
-                                Agregar Cliente
+                                Agregar Alumna
                             </Link>
                         </div>
 
@@ -113,20 +122,43 @@ const Clientes: React.FC = () => {
                                             <td className="px-6 py-4">{cliente.usuario?.email || 'N/A'}</td>
                                             <td className="px-6 py-4">{cliente.telefono || 'N/A'}</td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Activo</span>
+                                                {/* --- LÓGICA DE ESTADO MEJORADA --- */}
+                                                {cliente.activo === 1 && (
+                                                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Activa</span>
+                                                )}
+                                                {cliente.activo === 2 && (
+                                                    <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactiva</span>
+                                                )}
+                                                {/* Clientes con estado 3 (Bloqueado) no se mostrarán en esta lista */}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                {/* --- ACCIONES ACTUALIZADAS --- */}
                                                 <div className="flex justify-center items-center gap-3">
-                                                    <Link to={`/clientes/detalle/${cliente.id}`} className="text-gray-500 hover:text-gray-700" title="Ver Detalle">
+                                                    {/* Ver Detalle */}
+                                                    <Link
+                                                        to={`/clientes/detalle/${cliente.id}`}
+                                                        className="text-gray-500 hover:text-gray-700"
+                                                        title="Ver Detalle"
+                                                    >
                                                         <RiEyeLine size={20} />
                                                     </Link>
-                                                    <Link to={`/clientes/editar/${cliente.id}`} className="text-blue-500 hover:text-blue-700" title="Editar Cliente">
+
+                                                    {/* Editar Alumna */}
+                                                    <Link
+                                                        to={`/clientes/editar/${cliente.id}`}
+                                                        className="text-blue-500 hover:text-blue-700"
+                                                        title="Editar Alumna"
+                                                    >
                                                         <RiPencilLine size={20} />
                                                     </Link>
-                                                    <button className="text-red-500 hover:text-red-700" title="Eliminar Cliente">
-                                                        <RiDeleteBinLine size={20} />
-                                                    </button>
+
+                                                    {/* Ver Dashboard de Alumna */}
+                                                    <Link
+                                                        to={`/alumna/${cliente.id}`}
+                                                        className="text-purple-600 hover:text-purple-800"
+                                                        title="Ver Dashboard"
+                                                    >
+                                                        <RiDashboardLine size={20} />
+                                                    </Link>
                                                 </div>
                                             </td>
                                         </tr>

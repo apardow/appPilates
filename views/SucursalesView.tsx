@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { RiSearchLine, RiAddLine, RiPencilLine, RiDeleteBinLine } from 'react-icons/ri';
 
-// Interfaz para definir la estructura de una sucursal
+// Interfaz actualizada para incluir la URL de la foto
 interface Sucursal {
     id: number;
     nombre: string;
     codigo: string;
     direccion: string;
     habilitado: boolean | number;
+    foto_url?: string | null; // La URL de la foto es opcional
 }
 
 const SucursalesView: React.FC = () => {
@@ -17,7 +18,6 @@ const SucursalesView: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [busqueda, setBusqueda] = useState<string>('');
 
-    // Función para cargar las sucursales desde la API
     const fetchSucursales = async () => {
         try {
             const response = await fetch('https://api.espaciopilatescl.cl/api/sucursales');
@@ -25,9 +25,6 @@ const SucursalesView: React.FC = () => {
                 throw new Error('La respuesta de la red no fue exitosa');
             }
             const data: Sucursal[] = await response.json();
-            
-            console.log("Datos recibidos de la API:", data);
-
             setSucursales(data);
         } catch (err) {
             setError('No se pudo cargar la lista de sucursales.');
@@ -37,10 +34,33 @@ const SucursalesView: React.FC = () => {
         }
     };
 
-    // useEffect para llamar a fetchSucursales cuando el componente se monta
     useEffect(() => {
         fetchSucursales();
     }, []);
+    
+    // --- NUEVA FUNCIÓN PARA ELIMINAR ---
+    // Se añade la lógica para borrar una sucursal desde esta vista
+    const handleEliminar = async (id: number) => {
+        if (window.confirm('¿Estás seguro de que deseas eliminar esta sucursal?')) {
+            try {
+                const response = await fetch(`https://api.espaciopilatescl.cl/api/sucursales/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'No se pudo eliminar la sucursal.');
+                }
+                
+                // Actualiza la lista de sucursales en el estado para reflejar el cambio
+                setSucursales(sucursales.filter(s => s.id !== id));
+
+            } catch (err: any) {
+                alert(`Error: ${err.message}`);
+            }
+        }
+    };
+
 
     const sucursalesFiltradas = sucursales.filter(s =>
         s.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -52,8 +72,7 @@ const SucursalesView: React.FC = () => {
 
     return (
         <div className="p-4 md:p-8">
-            {/* --- CAMBIO PARA DEPURACIÓN: AÑADIMOS INDICADOR DE VERSIÓN --- */}
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Gestión de Sucursales (V3 - Final)</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Gestión de Sucursales</h1>
 
              <div className="bg-white p-6 rounded-xl shadow-md">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-4">
@@ -79,6 +98,8 @@ const SucursalesView: React.FC = () => {
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                             <tr>
+                                {/* --- NUEVA COLUMNA PARA LA FOTO --- */}
+                                <th scope="col" className="px-6 py-3 w-24">Foto</th>
                                 <th scope="col" className="px-6 py-3">Nombre</th>
                                 <th scope="col" className="px-6 py-3">Código</th>
                                 <th scope="col" className="px-6 py-3">Dirección</th>
@@ -90,6 +111,18 @@ const SucursalesView: React.FC = () => {
                             {sucursalesFiltradas.length > 0 ? (
                                 sucursalesFiltradas.map((sucursal) => (
                                     <tr key={sucursal.id} className="bg-white border-b hover:bg-gray-50">
+                                        {/* --- CELDA QUE MUESTRA LA FOTO --- */}
+                                        <td className="px-6 py-4">
+                                            {sucursal.foto_url ? (
+                                                <img 
+                                                    src={`https://api.espaciopilatescl.cl${sucursal.foto_url}`} 
+                                                    alt={sucursal.nombre}
+                                                    className="w-16 h-10 object-cover rounded-md"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-10 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">Sin foto</div>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 font-medium text-gray-900">{sucursal.nombre}</td>
                                         <td className="px-6 py-4">{sucursal.codigo}</td>
                                         <td className="px-6 py-4">{sucursal.direccion}</td>
@@ -101,14 +134,15 @@ const SucursalesView: React.FC = () => {
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex justify-center items-center gap-2">
                                                 <Link to={`/sucursales/editar/${sucursal.id}`} className="text-blue-500 hover:text-blue-700"><RiPencilLine size={20} /></Link>
-                                                <button className="text-red-500 hover:text-red-700"><RiDeleteBinLine size={20} /></button>
+                                                {/* --- BOTÓN DE ELIMINAR ACTUALIZADO --- */}
+                                                <button onClick={() => handleEliminar(sucursal.id)} className="text-red-500 hover:text-red-700"><RiDeleteBinLine size={20} /></button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                                    <td colSpan={6} className="text-center py-8 text-gray-500">
                                         No hay sucursales para mostrar. Puedes agregar una nueva.
                                     </td>
                                 </tr>

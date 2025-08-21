@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-// Interfaz que espera los datos del cliente y el usuario anidado
+// Interfaz que espera los datos del cliente y el usuario anidado desde la API
 interface ClienteConUsuario {
     nombre: string;
     apellido: string;
@@ -11,6 +11,7 @@ interface ClienteConUsuario {
     fecha_nacimiento: string | null;
     direccion: string | null;
     comuna: string | null;
+    activo: number; // 1: Activo, 2: Inactivo, 3: Bloqueado
     usuario: { // Objeto de usuario anidado
         email: string;
     };
@@ -27,6 +28,7 @@ interface ClienteFormData {
     fecha_nacimiento: string | null;
     direccion: string | null;
     comuna: string | null;
+    activo: number; // 1: Activo, 2: Inactivo, 3: Bloqueado
 }
 
 const ClienteForm: React.FC = () => {
@@ -43,6 +45,7 @@ const ClienteForm: React.FC = () => {
         fecha_nacimiento: '',
         direccion: '',
         comuna: '',
+        activo: 2, // Por defecto, una nueva alumna es 'Inactiva'
     });
 
     const [cargando, setCargando] = useState<boolean>(false);
@@ -56,15 +59,14 @@ const ClienteForm: React.FC = () => {
             setCargando(true);
             fetch(`https://api.espaciopilatescl.cl/api/clientes/${id}`)
                 .then(res => {
-                    if (!res.ok) throw new Error('No se pudo encontrar al cliente.');
+                    if (!res.ok) throw new Error('No se pudo encontrar a la alumna.');
                     return res.json();
                 })
                 .then((data: ClienteConUsuario) => {
-                    // --- CAMBIO CLAVE ---
-                    // Aplanamos los datos para el formulario, tomando el email del objeto anidado
                     const formData: ClienteFormData = {
                         ...data,
-                        email: data.usuario.email, 
+                        email: data.usuario.email,
+                        activo: data.activo,
                     };
                     if (formData.fecha_nacimiento) {
                         formData.fecha_nacimiento = formData.fecha_nacimiento.split(' ')[0];
@@ -78,7 +80,8 @@ const ClienteForm: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setCliente(prevState => ({ ...prevState, [name]: value }));
+        const valorProcesado = name === 'activo' ? parseInt(value, 10) : value;
+        setCliente(prevState => ({ ...prevState, [name]: valorProcesado }));
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -115,16 +118,14 @@ const ClienteForm: React.FC = () => {
         }
     };
 
-    if (cargando) return <div className="p-8 text-center">Cargando datos del cliente...</div>;
+    if (cargando) return <div className="p-8 text-center">Cargando datos de la alumna...</div>;
 
-    // --- MEJORA DE ESTILO ---
-    // Se ha añadido la clase 'input-style' para unificar y mejorar el contraste de los campos
     const inputStyle = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-purple-500 focus:border-purple-500";
 
     return (
         <div className="p-4 md:p-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">
-                {isEditing ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}
+                {isEditing ? 'Editar Alumna' : 'Agregar Nueva Alumna'}
             </h1>
 
             <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md max-w-4xl mx-auto">
@@ -170,6 +171,17 @@ const ClienteForm: React.FC = () => {
                         <label htmlFor="comuna" className="block text-sm font-medium text-gray-700">Comuna</label>
                         <input type="text" name="comuna" id="comuna" value={cliente.comuna || ''} onChange={handleInputChange} className={inputStyle} />
                     </div>
+
+                    {isEditing && (
+                        <div className="md:col-span-2">
+                            <label htmlFor="activo" className="block text-sm font-medium text-gray-700">Estado</label>
+                            <select name="activo" id="activo" value={cliente.activo} onChange={handleInputChange} className={inputStyle}>
+                                <option value={1}>Activa</option>
+                                <option value={2}>Inactiva</option>
+                                <option value={3}>Bloqueada</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 {error && (
