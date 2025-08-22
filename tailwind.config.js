@@ -1,18 +1,6 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./App.tsx",
-    "./index.tsx",
-    "./components/**/*.tsx",
-    "./views/**/*.tsx",
-  ],
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
-    },
-  },
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  theme: { extend: {} },
   plugins: [],
-}
+};
