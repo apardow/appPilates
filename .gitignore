@@ -1,0 +1,13 @@
+﻿# dependencies / builds
+node_modules/
+dist/
+
+# envs
+.env
+.env.*.local
+.env.local
+
+# editor/OS
+.DS_Store
+.idea/
+.vscode/
