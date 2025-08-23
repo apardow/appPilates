@@ -37,8 +37,7 @@ const ServicioForm: React.FC = () => {
         const data = await res.json();
 
         // Soportar tanto "capacidad" como "capacidad_alumnos" (compatibilidad)
-        const capacidadValue =
-          (data.capacidad ?? data.capacidad_alumnos ?? 10);
+        const capacidadValue = data.capacidad ?? data.capacidad_alumnos ?? 10;
 
         setFormData({
           nombre: data.nombre ?? '',
@@ -56,7 +55,7 @@ const ServicioForm: React.FC = () => {
   }, [id, isEditing]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = e.target;
 
@@ -89,17 +88,14 @@ const ServicioForm: React.FC = () => {
       const method = isEditing ? 'PUT' : 'POST';
 
       // Convertimos capacidad a número seguro (mínimo 1)
-      const capacidadNum = Math.max(
-        1,
-        Number(formData.capacidad) || 0
-      );
+      const capacidadNum = Math.max(1, Number(formData.capacidad) || 0);
 
       const payload = {
         nombre: formData.nombre,
         descripcion: formData.descripcion,
-        capacidad: capacidadNum,          // <- nombre usado por el backend propuesto
+        capacidad: capacidadNum, // <- nombre usado por el backend propuesto
         // compat opcional por si el backend heredado espera este nombre:
-        capacidad_alumnos: capacidadNum,  // <- se ignora si no es fillable
+        capacidad_alumnos: capacidadNum, // <- se ignora si no es fillable
       };
 
       const response = await fetch(url, {
@@ -122,9 +118,7 @@ const ServicioForm: React.FC = () => {
 
         if (response.status === 422 && data) {
           // Errores de validación tipo Laravel
-          const validationErrors = Object.values(data)
-            .flat()
-            .join(' ');
+          const validationErrors = Object.values(data).flat().join(' ');
           throw new Error(validationErrors || 'Errores de validación.');
         }
 
@@ -132,7 +126,7 @@ const ServicioForm: React.FC = () => {
           // Conflictos (p. ej., relaciones/FK al eliminar o update inválido)
           throw new Error(
             data?.message ||
-              'No se pudo completar la operación por un conflicto.'
+              'No se pudo completar la operación por un conflicto.',
           );
         }
 
@@ -148,7 +142,9 @@ const ServicioForm: React.FC = () => {
   };
 
   if (cargando) {
-    return <div className="p-8 text-center">Cargando datos del servicio...</div>;
+    return (
+      <div className="p-8 text-center">Cargando datos del servicio...</div>
+    );
   }
 
   const inputStyle =

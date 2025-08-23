@@ -30,7 +30,11 @@ const API_BASE_URL = 'https://api.espaciopilatescl.cl/api';
 
 // Helpers de formato
 const fmtCLP = (n: number) =>
-  new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(n);
 
 const fmtFecha = (d: string | null) => {
   if (!d) return '—';
@@ -51,7 +55,8 @@ const pct = (used: number, total: number) => {
 
 const badgeClassByEstado = (estado: string) => {
   const e = (estado || '').toLowerCase();
-  if (e === 'vigente' || e === 'activo') return 'border-green-600 text-green-700 bg-green-50';
+  if (e === 'vigente' || e === 'activo')
+    return 'border-green-600 text-green-700 bg-green-50';
   if (e === 'consumido') return 'border-blue-700 text-blue-700 bg-blue-50';
   if (e === 'caducado') return 'border-yellow-700 text-yellow-800 bg-yellow-50';
   if (e === 'eliminado') return 'border-red-700 text-red-700 bg-red-50';
@@ -75,7 +80,8 @@ const ClienteDetalle: React.FC = () => {
           fetch(`${API_BASE_URL}/clientes/${id}`),
           fetch(`${API_BASE_URL}/clientes/${id}/planes`),
         ]);
-        if (!resCliente.ok || !resPlanes.ok) throw new Error('No se pudieron cargar los datos de la alumna.');
+        if (!resCliente.ok || !resPlanes.ok)
+          throw new Error('No se pudieron cargar los datos de la alumna.');
 
         const dataCliente = await resCliente.json();
         const dataPlanes = await resPlanes.json();
@@ -93,9 +99,10 @@ const ClienteDetalle: React.FC = () => {
 
   if (cargando) return <div className="p-8 text-center">Cargando...</div>;
   if (error) return <div className="p-8 text-red-500">{error}</div>;
-  if (!cliente) return <div className="p-8 text-center">Alumna no encontrada.</div>;
+  if (!cliente)
+    return <div className="p-8 text-center">Alumna no encontrada.</div>;
 
-  const planesActivos = planes.filter(p => isPlanVigente(p.estado)).length;
+  const planesActivos = planes.filter((p) => isPlanVigente(p.estado)).length;
 
   return (
     <div className="p-4 md:p-8">
@@ -103,7 +110,8 @@ const ClienteDetalle: React.FC = () => {
       <div className="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-center gap-6">
         <div className="relative">
           <div className="w-24 h-24 bg-purple-200 rounded-full flex items-center justify-center text-purple-600 text-4xl font-bold">
-            {cliente.nombre.charAt(0)}{cliente.apellido.charAt(0)}
+            {cliente.nombre.charAt(0)}
+            {cliente.apellido.charAt(0)}
           </div>
           {/* --- Asignar plan --- */}
           <Link
@@ -125,9 +133,15 @@ const ClienteDetalle: React.FC = () => {
         <div className="md:ml-auto flex flex-col gap-3 self-stretch">
           <div className="border rounded-lg p-4 text-sm bg-gray-50">
             <h3 className="font-bold mb-2 text-gray-700">Datos de la alumna</h3>
-            <p><strong>RUT:</strong> {cliente.rut}</p>
-            <p><strong>Email:</strong> {cliente.usuario.email}</p>
-            <p><strong>Teléfono:</strong> {cliente.telefono}</p>
+            <p>
+              <strong>RUT:</strong> {cliente.rut}
+            </p>
+            <p>
+              <strong>Email:</strong> {cliente.usuario.email}
+            </p>
+            <p>
+              <strong>Teléfono:</strong> {cliente.telefono}
+            </p>
           </div>
           {/* --- Botón Ver Dashboard --- */}
           <Link
@@ -143,18 +157,28 @@ const ClienteDetalle: React.FC = () => {
 
       {/* Planes comprados */}
       <div className="mt-8">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Planes Comprados</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4">
+          Planes Comprados
+        </h3>
         <div className="space-y-4">
           {planes.length > 0 ? (
-            planes.map(plan => {
+            planes.map((plan) => {
               const total = Number(plan.plan.cantidad_clases) || 0;
-              const usadas = Math.max(0, total - Number(plan.clases_restantes || 0));
+              const usadas = Math.max(
+                0,
+                total - Number(plan.clases_restantes || 0),
+              );
               const porcentaje = pct(usadas, total);
 
               return (
-                <div key={plan.id} className="bg-white p-4 rounded-xl shadow-md">
+                <div
+                  key={plan.id}
+                  className="bg-white p-4 rounded-xl shadow-md"
+                >
                   <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-gray-800">{plan.plan.nombre}</h4>
+                    <h4 className="font-bold text-gray-800">
+                      {plan.plan.nombre}
+                    </h4>
                     <div className="flex items-center gap-2">
                       <span
                         className={`text-xs font-semibold px-2 py-1 rounded border uppercase ${badgeClassByEstado(plan.estado)}`}
@@ -168,12 +192,19 @@ const ClienteDetalle: React.FC = () => {
                   </div>
 
                   <div className="text-sm text-gray-600 mt-2 space-y-1">
-                    <p><strong>Precio:</strong> {fmtCLP(Number(plan.plan.precio))}</p>
                     <p>
-                      <strong>Fechas:</strong> Inicio: {fmtFecha(plan.fecha_inicio)} | Término: {fmtFecha(plan.fecha_fin)}
+                      <strong>Precio:</strong>{' '}
+                      {fmtCLP(Number(plan.plan.precio))}
+                    </p>
+                    <p>
+                      <strong>Fechas:</strong> Inicio:{' '}
+                      {fmtFecha(plan.fecha_inicio)} | Término:{' '}
+                      {fmtFecha(plan.fecha_fin)}
                     </p>
                     <div>
-                      <p className="mb-1"><strong>Consumo:</strong></p>
+                      <p className="mb-1">
+                        <strong>Consumo:</strong>
+                      </p>
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
                         <div
                           className="bg-blue-500 h-2.5 rounded-full"
@@ -189,7 +220,9 @@ const ClienteDetalle: React.FC = () => {
               );
             })
           ) : (
-            <p className="text-gray-500 italic">Esta alumna no tiene planes asignados.</p>
+            <p className="text-gray-500 italic">
+              Esta alumna no tiene planes asignados.
+            </p>
           )}
         </div>
       </div>

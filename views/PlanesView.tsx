@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RiSearchLine, RiAddLine, RiPencilLine, RiDeleteBinLine } from 'react-icons/ri';
+import {
+  RiSearchLine,
+  RiAddLine,
+  RiPencilLine,
+  RiDeleteBinLine,
+} from 'react-icons/ri';
 
 // --- Definición de Tipos ---
 interface Plan {
@@ -51,23 +56,38 @@ const PlanesView: React.FC = () => {
         throw new Error('No se pudo eliminar el plan.');
       }
       // Actualiza la lista de planes en el estado para reflejar el cambio
-      setPlanes(planes.filter(plan => plan.id !== id));
+      setPlanes(planes.filter((plan) => plan.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocurrió un error al eliminar');
+      setError(
+        err instanceof Error ? err.message : 'Ocurrió un error al eliminar',
+      );
     }
   };
 
-  const planesFiltrados = planes.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const planesFiltrados = planes.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase()),
   );
 
   if (loading) return <div className="p-8 text-center">Cargando planes...</div>;
-  if (error) return <div className="p-8"><div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert"><p className="font-bold">Error</p><p>{error}</p></div></div>;
+  if (error)
+    return (
+      <div className="p-8">
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md"
+          role="alert"
+        >
+          <p className="font-bold">Error</p>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Gestión de Planes</h1>
-      
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Gestión de Planes
+      </h1>
+
       <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
           <div className="relative w-full md:w-auto mb-4 md:mb-0">
@@ -80,9 +100,10 @@ const PlanesView: React.FC = () => {
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
-          <Link 
+          <Link
             to="/planes/nuevo"
-            className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+          >
             <RiAddLine />
             Agregar Plan
           </Link>
@@ -92,31 +113,62 @@ const PlanesView: React.FC = () => {
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-3">Nombre</th>
-                <th scope="col" className="px-6 py-3">Duración</th>
-                <th scope="col" className="px-6 py-3">Clases</th>
-                <th scope="col" className="px-6 py-3">Precio</th>
-                <th scope="col" className="px-6 py-3 text-center">Estado</th>
-                <th scope="col" className="px-6 py-3 text-center">Acciones</th>
+                <th scope="col" className="px-6 py-3">
+                  Nombre
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Duración
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Clases
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Precio
+                </th>
+                <th scope="col" className="px-6 py-3 text-center">
+                  Estado
+                </th>
+                <th scope="col" className="px-6 py-3 text-center">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
               {planesFiltrados.length > 0 ? (
                 planesFiltrados.map((plan) => (
-                  <tr key={plan.id} className="bg-white border-b hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{plan.nombre}</td>
+                  <tr
+                    key={plan.id}
+                    className="bg-white border-b hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {plan.nombre}
+                    </td>
                     <td className="px-6 py-4">{plan.duracion_dias} días</td>
                     <td className="px-6 py-4">{plan.cantidad_clases}</td>
-                    <td className="px-6 py-4">${new Intl.NumberFormat('es-CL').format(plan.precio)}</td>
+                    <td className="px-6 py-4">
+                      ${new Intl.NumberFormat('es-CL').format(plan.precio)}
+                    </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${plan.habilitado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      <span
+                        className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${plan.habilitado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                      >
                         {plan.habilitado ? 'Habilitado' : 'Deshabilitado'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center items-center gap-2">
-                        <Link to={`/planes/editar/${plan.id}`} className="text-blue-500 hover:text-blue-700"><RiPencilLine size={20} /></Link>
-                        <button onClick={() => handleDelete(plan.id)} className="text-red-500 hover:text-red-700"><RiDeleteBinLine size={20} /></button>
+                        <Link
+                          to={`/planes/editar/${plan.id}`}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          <RiPencilLine size={20} />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(plan.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <RiDeleteBinLine size={20} />
+                        </button>
                       </div>
                     </td>
                   </tr>

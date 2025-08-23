@@ -4,21 +4,21 @@
 export interface Clase {
   id: ID;
   servicio_id: ID;
-  fecha: string;        // date
-  hora_inicio: string;  // time
-  hora_fin: string;     // time
+  fecha: string; // date
+  hora_inicio: string; // time
+  hora_fin: string; // time
   cupos_disponibles: number;
-  estado: "programada" | "cancelada" | "completada";
+  estado: 'programada' | 'cancelada' | 'completada';
   servicio_nombre?: string; // opcional (si el endpoint lo trae con JOIN)
 }
 
 // RESERVAS (tabla `reservas`)
 export type ReservaEstado =
-  | "activa"
-  | "cancelada_a_tiempo"
-  | "cancelada_tarde"
-  | "asistida"
-  | "ausente";
+  | 'activa'
+  | 'cancelada_a_tiempo'
+  | 'cancelada_tarde'
+  | 'asistida'
+  | 'ausente';
 
 export interface Reserva {
   id: ID;
@@ -39,7 +39,7 @@ export interface Plan {
   clases_consumidas: number;
   fecha_inicio: string;
   fecha_fin: string;
-  estado: "vigente" | "consumido" | "caducado" | "eliminado" | "activo";
+  estado: 'vigente' | 'consumido' | 'caducado' | 'eliminado' | 'activo';
 }
 
 // PAGOS (vista v_pagos_alumna)

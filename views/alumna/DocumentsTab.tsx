@@ -1,14 +1,13 @@
-
-import { useState } from "react";
-import { format } from "date-fns";
-import { fmtDia } from "../../utils/format";
-import { toCsv, downloadCsv } from "../../utils/csv";
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { fmtDia } from '../../utils/format';
+import { toCsv, downloadCsv } from '../../utils/csv';
 import {
   getDocumentos,
   uploadClienteDocumento,
   deleteClienteDocumento,
-} from "../../data/alumnaApi";
-import type { DocumentoAlumna } from "../../types/alumna";
+} from '../../data/alumnaApi';
+import type { DocumentoAlumna } from '../../types/alumna';
 
 type Props = {
   clienteId: number;
@@ -21,13 +20,13 @@ export default function DocumentsTab({ clienteId }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   // Filtros
-  const [tipoFilter, setTipoFilter] = useState("");
+  const [tipoFilter, setTipoFilter] = useState('');
   const [limit, setLimit] = useState(20);
 
   // Form
-  const [nombre, setNombre] = useState("");
+  const [nombre, setNombre] = useState('');
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [tipoForm, setTipoForm] = useState("");
+  const [tipoForm, setTipoForm] = useState('');
 
   async function fetchDocs() {
     try {
@@ -39,7 +38,7 @@ export default function DocumentsTab({ clienteId }: Props) {
       });
       setDocs(data);
     } catch (e: any) {
-      setErr(e?.message ?? "Error desconocido");
+      setErr(e?.message ?? 'Error desconocido');
     } finally {
       setLoading(false);
     }
@@ -69,10 +68,7 @@ export default function DocumentsTab({ clienteId }: Props) {
             onChange={(e) => setLimit(Number(e.target.value || 0))}
           />
         </label>
-        <button
-          className="px-3 py-2 border rounded"
-          onClick={fetchDocs}
-        >
+        <button className="px-3 py-2 border rounded" onClick={fetchDocs}>
           Aplicar
         </button>
 
@@ -80,12 +76,14 @@ export default function DocumentsTab({ clienteId }: Props) {
           <button
             className="px-3 py-2 border rounded"
             onClick={() => {
-              const rows = docs.map(d => ({
+              const rows = docs.map((d) => ({
                 nombre: d.nombre_documento,
-                tipo: d.tipo ?? "",
-                emitido_el: d.emitido_el ? fmtDia(d.emitido_el) : "",
-                vence_el: d.vence_el ? fmtDia(d.vence_el) : "",
-                actualizado: d.updated_at ? format(new Date(d.updated_at), "dd-MM-yyyy HH:mm") : "",
+                tipo: d.tipo ?? '',
+                emitido_el: d.emitido_el ? fmtDia(d.emitido_el) : '',
+                vence_el: d.vence_el ? fmtDia(d.vence_el) : '',
+                actualizado: d.updated_at
+                  ? format(new Date(d.updated_at), 'dd-MM-yyyy HH:mm')
+                  : '',
                 url: d.url_documento,
               }));
               const csv = toCsv(rows);
@@ -133,7 +131,8 @@ export default function DocumentsTab({ clienteId }: Props) {
           className="px-3 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
           onClick={async () => {
             if (!nombre || !archivo) {
-              alert("Nombre y archivo son obligatorios"); return;
+              alert('Nombre y archivo son obligatorios');
+              return;
             }
             try {
               setLoading(true);
@@ -143,9 +142,11 @@ export default function DocumentsTab({ clienteId }: Props) {
                 tipo: tipoForm || undefined,
               });
               await fetchDocs();
-              setNombre(""); setArchivo(null); setTipoForm("");
+              setNombre('');
+              setArchivo(null);
+              setTipoForm('');
             } catch (e: any) {
-              alert(e?.message ?? "No se pudo subir el documento");
+              alert(e?.message ?? 'No se pudo subir el documento');
             } finally {
               setLoading(false);
             }
@@ -161,11 +162,18 @@ export default function DocumentsTab({ clienteId }: Props) {
       {docs?.length === 0 && <div>Sin documentos.</div>}
 
       {docs?.map((d) => (
-        <div key={d.documento_id} className="bg-white rounded-xl shadow p-4 flex items-center justify-between">
+        <div
+          key={d.documento_id}
+          className="bg-white rounded-xl shadow p-4 flex items-center justify-between"
+        >
           <div>
             <div className="font-semibold">{d.nombre_documento}</div>
             <div className="text-sm text-gray-600">
-              {(d.tipo ?? "—") + " • emitido: " + (d.emitido_el ? fmtDia(d.emitido_el) : "—") + " • vence: " + (d.vence_el ? fmtDia(d.vence_el) : "—")}
+              {(d.tipo ?? '—') +
+                ' • emitido: ' +
+                (d.emitido_el ? fmtDia(d.emitido_el) : '—') +
+                ' • vence: ' +
+                (d.vence_el ? fmtDia(d.vence_el) : '—')}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -181,13 +189,16 @@ export default function DocumentsTab({ clienteId }: Props) {
               type="button"
               className="text-xs px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50"
               onClick={async () => {
-                if (!confirm("¿Eliminar este documento?")) return;
+                if (!confirm('¿Eliminar este documento?')) return;
                 try {
                   setLoading(true);
-                  await deleteClienteDocumento(clienteId, d.documento_id as any);
+                  await deleteClienteDocumento(
+                    clienteId,
+                    d.documento_id as any,
+                  );
                   await fetchDocs();
                 } catch (e: any) {
-                  alert(e?.message ?? "No se pudo eliminar el documento");
+                  alert(e?.message ?? 'No se pudo eliminar el documento');
                 } finally {
                   setLoading(false);
                 }

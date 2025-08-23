@@ -1,6 +1,6 @@
-import type { PlanAlumna } from "../../../types/alumna";
-import { fmtDia } from "../../../utils/format";
-import { BadgePlan } from "../../../components/common/StatusBadges";
+import type { PlanAlumna } from '../../../types/alumna';
+import { fmtDia } from '../../../utils/format';
+import { BadgePlan } from '../../../components/common/StatusBadges';
 
 export default function PlanesPanel({ planes }: { planes: PlanAlumna[] }) {
   return (
@@ -15,9 +15,9 @@ export default function PlanesPanel({ planes }: { planes: PlanAlumna[] }) {
         <div className="space-y-2">
           {planes.map((p) => {
             const label =
-              p.nombre && p.nombre !== "(sin nombre)"
+              p.nombre && p.nombre !== '(sin nombre)'
                 ? p.nombre
-                : `Plan #${p.id ?? "-"}`;
+                : `Plan #${p.id ?? '-'}`;
 
             return (
               <div
@@ -27,9 +27,10 @@ export default function PlanesPanel({ planes }: { planes: PlanAlumna[] }) {
                 <div>
                   <div className="font-medium">{label}</div>
                   <div className="opacity-70">
-                    Clases: {p.clasesTotales ?? 0} · Usadas: {p.clasesUsadas ?? 0}
-                    {" · Vence: "}
-                    {p.vencimiento ? fmtDia(p.vencimiento) : "—"}
+                    Clases: {p.clasesTotales ?? 0} · Usadas:{' '}
+                    {p.clasesUsadas ?? 0}
+                    {' · Vence: '}
+                    {p.vencimiento ? fmtDia(p.vencimiento) : '—'}
                   </div>
                 </div>
                 <BadgePlan estado={p.estado} />

@@ -1,25 +1,28 @@
-import { lazy, Suspense } from "react";
-import { useParams } from "react-router-dom";
-import { useAlumnaDashboard } from "../../hooks/useAlumnaDashboard";
+import { lazy, Suspense } from 'react';
+import { useParams } from 'react-router-dom';
+import { useAlumnaDashboard } from '../../hooks/useAlumnaDashboard';
 
-const ResumenPanel = lazy(() => import("./panels/ResumenPanel"));
-const PlanesPanel = lazy(() => import("./panels/PlanesPanel"));
-const ActividadesPanel = lazy(() => import("./panels/ActividadesPanel"));
-const PagosPanel = lazy(() => import("./panels/PagosPanel"));
-const DocumentosPanel = lazy(() => import("./panels/DocumentosPanel"));
+const ResumenPanel = lazy(() => import('./panels/ResumenPanel'));
+const PlanesPanel = lazy(() => import('./panels/PlanesPanel'));
+const ActividadesPanel = lazy(() => import('./panels/ActividadesPanel'));
+const PagosPanel = lazy(() => import('./panels/PagosPanel'));
+const DocumentosPanel = lazy(() => import('./panels/DocumentosPanel'));
 
 export default function AlumnaDashboard() {
   const { id: alumnaId } = useParams<{ id: string }>();
   const vm = useAlumnaDashboard(alumnaId);
 
-  if (vm.state === "loading" && !vm.data.resumen) {
+  if (vm.state === 'loading' && !vm.data.resumen) {
     return <div className="p-6 text-sm text-gray-500">Cargando…</div>;
   }
-  if (vm.state === "error") {
+  if (vm.state === 'error') {
     return (
       <div className="p-6 text-red-600">
-        Error: {vm.error?.message ?? "No se pudo cargar la información."}
-        <button className="ml-3 px-3 py-1 rounded bg-gray-900 text-white" onClick={vm.reload}>
+        Error: {vm.error?.message ?? 'No se pudo cargar la información.'}
+        <button
+          className="ml-3 px-3 py-1 rounded bg-gray-900 text-white"
+          onClick={vm.reload}
+        >
           Reintentar
         </button>
       </div>

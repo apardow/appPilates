@@ -17,7 +17,11 @@ interface MetodoPago {
 const API_BASE_URL = 'https://api.espaciopilatescl.cl/api';
 
 const toCLP = (n: number) =>
-  new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(n);
 
 const AsignarPlan: React.FC = () => {
   const { id: clienteIdParam } = useParams<{ id: string }>();
@@ -27,7 +31,8 @@ const AsignarPlan: React.FC = () => {
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]);
   const [planSeleccionado, setPlanSeleccionado] = useState<Plan | null>(null);
-  const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState<MetodoPago | null>(null);
+  const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] =
+    useState<MetodoPago | null>(null);
 
   const hoyISO = new Date().toISOString().split('T')[0];
   const [fechaInicio, setFechaInicio] = useState<string>(hoyISO);
@@ -48,8 +53,14 @@ const AsignarPlan: React.FC = () => {
           fetch(`${API_BASE_URL}/planes`),
           fetch(`${API_BASE_URL}/metodos-pago`),
         ]);
-        if (!resPlanes.ok) throw new Error(`No se pudieron cargar planes (HTTP ${resPlanes.status})`);
-        if (!resMetodos.ok) throw new Error(`No se pudieron cargar métodos de pago (HTTP ${resMetodos.status})`);
+        if (!resPlanes.ok)
+          throw new Error(
+            `No se pudieron cargar planes (HTTP ${resPlanes.status})`,
+          );
+        if (!resMetodos.ok)
+          throw new Error(
+            `No se pudieron cargar métodos de pago (HTTP ${resMetodos.status})`,
+          );
 
         const dataPlanes: Plan[] = await resPlanes.json();
         const dataMetodos: MetodoPago[] = await resMetodos.json();
@@ -61,13 +72,16 @@ const AsignarPlan: React.FC = () => {
         // Preseleccionar método si solo hay uno
         if (dataMetodos.length === 1) setMetodoPagoSeleccionado(dataMetodos[0]);
       } catch (err: any) {
-        if (!cancelled) setError(err?.message || 'Error al cargar datos iniciales.');
+        if (!cancelled)
+          setError(err?.message || 'Error al cargar datos iniciales.');
       } finally {
         if (!cancelled) setCargando(false);
       }
     };
     cargarDatos();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // --- Guardar asignación de plan ---
@@ -92,9 +106,12 @@ const AsignarPlan: React.FC = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/cliente-plan`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify({
-          cliente_id: clienteId,          // <- numérico
+          cliente_id: clienteId, // <- numérico
           plan_id: planSeleccionado.id,
           fecha_inicio: fechaInicio,
           // Nota: guardamos solo la asignación; el método de pago se usa a nivel de UI.
@@ -132,28 +149,39 @@ const AsignarPlan: React.FC = () => {
   }
 
   if (cargando) {
-    return <div className="p-8 text-center text-gray-500">Cargando catálogo…</div>;
+    return (
+      <div className="p-8 text-center text-gray-500">Cargando catálogo…</div>
+    );
   }
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Asignar Plan a Alumna</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        Asignar Plan a Alumna
+      </h1>
 
       <div className="space-y-6">
         {/* — Selección de Plan — */}
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h2 className="text-xl font-semibold text-gray-700 flex items-center gap-3 mb-4">
-            <RiFileList2Line className="text-purple-500" /> Selección de Plan/Servicio
+            <RiFileList2Line className="text-purple-500" /> Selección de
+            Plan/Servicio
           </h2>
 
           {planSeleccionado ? (
             <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <p className="font-bold text-purple-800">{planSeleccionado.nombre}</p>
-                <p className="text-sm text-purple-600">{planSeleccionado.descripcion}</p>
+                <p className="font-bold text-purple-800">
+                  {planSeleccionado.nombre}
+                </p>
+                <p className="text-sm text-purple-600">
+                  {planSeleccionado.descripcion}
+                </p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-purple-800">{toCLP(planSeleccionado.precio)}</p>
+                <p className="text-xl font-bold text-purple-800">
+                  {toCLP(planSeleccionado.precio)}
+                </p>
                 <button
                   onClick={() => setPlanSeleccionado(null)}
                   className="text-sm text-red-600 hover:underline mt-1"
@@ -167,9 +195,15 @@ const AsignarPlan: React.FC = () => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr className="border-b">
-                    <th className="p-3 text-left font-semibold text-gray-600">Nombre</th>
-                    <th className="p-3 text-left font-semibold text-gray-600">Descripción</th>
-                    <th className="p-3 text-right font-semibold text-gray-600">Precio</th>
+                    <th className="p-3 text-left font-semibold text-gray-600">
+                      Nombre
+                    </th>
+                    <th className="p-3 text-left font-semibold text-gray-600">
+                      Descripción
+                    </th>
+                    <th className="p-3 text-right font-semibold text-gray-600">
+                      Precio
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -181,7 +215,9 @@ const AsignarPlan: React.FC = () => {
                     >
                       <td className="p-3 font-medium">{plan.nombre}</td>
                       <td className="p-3 text-gray-600">{plan.descripcion}</td>
-                      <td className="p-3 text-right font-semibold">{toCLP(plan.precio)}</td>
+                      <td className="p-3 text-right font-semibold">
+                        {toCLP(plan.precio)}
+                      </td>
                     </tr>
                   ))}
                   {planes.length === 0 && (
@@ -222,14 +258,19 @@ const AsignarPlan: React.FC = () => {
               );
             })}
             {metodosPago.length === 0 && (
-              <div className="text-gray-500 text-sm">No hay métodos de pago configurados.</div>
+              <div className="text-gray-500 text-sm">
+                No hay métodos de pago configurados.
+              </div>
             )}
           </div>
         </div>
 
         {/* — Fecha de inicio — */}
         <div className="bg-white p-6 rounded-xl shadow-md">
-          <label htmlFor="fecha_inicio" className="block text-xl font-semibold text-gray-700 mb-2">
+          <label
+            htmlFor="fecha_inicio"
+            className="block text-xl font-semibold text-gray-700 mb-2"
+          >
             Fecha de Inicio del Plan
           </label>
           <input
@@ -249,7 +290,8 @@ const AsignarPlan: React.FC = () => {
         {/* Mensajes */}
         {error && (
           <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg">
-            <strong>Error: </strong>{error}
+            <strong>Error: </strong>
+            {error}
           </div>
         )}
         {okMsg && (
@@ -262,7 +304,12 @@ const AsignarPlan: React.FC = () => {
         <div className="flex justify-end">
           <button
             onClick={handleAsignarPlan}
-            disabled={guardando || !planSeleccionado || !metodoPagoSeleccionado || !fechaInicio}
+            disabled={
+              guardando ||
+              !planSeleccionado ||
+              !metodoPagoSeleccionado ||
+              !fechaInicio
+            }
             className="flex items-center justify-center gap-2 bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-300 disabled:cursor-not-allowed"
           >
             <RiCheckLine />

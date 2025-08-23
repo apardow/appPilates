@@ -18,11 +18,16 @@ export type ActividadAlumna = {
   reserva_id: number;
   cliente_id: number;
   cliente_plan_id: number | null;
-  fecha: string;        // YYYY-MM-DD
-  hora_inicio: string;  // HH:mm:ss
-  hora_fin: string;     // HH:mm:ss
+  fecha: string; // YYYY-MM-DD
+  hora_inicio: string; // HH:mm:ss
+  hora_fin: string; // HH:mm:ss
   sucursal_id: number;
-  estado: 'activa' | 'cancelada_a_tiempo' | 'cancelada_tarde' | 'asistida' | 'ausente';
+  estado:
+    | 'activa'
+    | 'cancelada_a_tiempo'
+    | 'cancelada_tarde'
+    | 'asistida'
+    | 'ausente';
   cancelada_en: string | null;
   min_antes: number | null;
 };
@@ -37,6 +42,22 @@ export type PagoAlumna = {
   pagado_en: string | null;
 };
 
+export interface Reserva {
+  id: ID;
+  clase_id: ID;
+  cliente_id: ID;
+  cliente_plan_id: ID;
+  estado:
+    | 'activa'
+    | 'cancelada_a_tiempo'
+    | 'cancelada_tarde'
+    | 'asistida'
+    | 'ausente';
+  asistencia_marcada?: 0 | 1 | boolean;
+  cancelada_en?: string | null;
+  created_at?: string;
+}
+
 export type DocumentoAlumna = {
   documento_id: number;
   cliente_id: number;
@@ -49,6 +70,6 @@ export type DocumentoAlumna = {
 };
 
 export type AlumnaResumen = {
-  activos: number;          // planes vigentes con clases disponibles (backend)
-  total_vigentes?: number;  // opcional, si lo agregamos luego
+  activos: number; // planes vigentes con clases disponibles (backend)
+  total_vigentes?: number; // opcional, si lo agregamos luego
 };

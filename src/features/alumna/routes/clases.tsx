@@ -1,11 +1,11 @@
-﻿import { useQuery } from "@tanstack/react-query";
-import { getClases } from "../api/alumna.api";
-import { useAlumnaId } from "../api/useAlumnaId";
+﻿import { useQuery } from '@tanstack/react-query';
+import { getClases } from '../api/alumna.api';
+import { useAlumnaId } from '../api/useAlumnaId';
 
 export default function Clases() {
   const id = useAlumnaId();
   const { data, isLoading, error } = useQuery({
-    queryKey: ["clases", id],
+    queryKey: ['clases', id],
     queryFn: () => getClases(id),
   });
 

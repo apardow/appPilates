@@ -1,11 +1,11 @@
-﻿import { NavLink, Outlet } from "react-router-dom";
+﻿import { NavLink, Outlet } from 'react-router-dom';
 
 const tabs = [
-  { to: "clases", label: "Clases" },
-  { to: "reservas", label: "Reservas" },
-  { to: "planes", label: "Planes" },
-  { to: "pagos", label: "Pagos" },
-  { to: "perfil", label: "Perfil" },
+  { to: 'clases', label: 'Clases' },
+  { to: 'reservas', label: 'Reservas' },
+  { to: 'planes', label: 'Planes' },
+  { to: 'pagos', label: 'Pagos' },
+  { to: 'perfil', label: 'Perfil' },
 ];
 
 export default function AlumnaLayout() {
@@ -18,7 +18,7 @@ export default function AlumnaLayout() {
             key={t.to}
             to={t.to}
             className={({ isActive }) =>
-              `tab ${isActive ? "tab-active" : "opacity-70"}`
+              `tab ${isActive ? 'tab-active' : 'opacity-70'}`
             }
           >
             {t.label}

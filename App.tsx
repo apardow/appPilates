@@ -1,5 +1,11 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
+} from 'react-router-dom';
 
 // Componentes de Layout
 import Sidebar from './components/Sidebar';
@@ -53,7 +59,10 @@ const App: React.FC = () => {
           <Route path="calendario" element={<CalendarView />} />
 
           {/* --- RUTA DE REDIRECCIÓN AÑADIDA --- */}
-          <Route path="calendar" element={<Navigate to="/calendario" replace />} />
+          <Route
+            path="calendar"
+            element={<Navigate to="/calendario" replace />}
+          />
 
           {/* Módulo de Clientes */}
           <Route path="clientes" element={<Clientes />} />
@@ -98,7 +107,13 @@ const App: React.FC = () => {
           <Route
             path="alumna/:id"
             element={
-              <Suspense fallback={<div className="p-6 text-sm text-gray-500">Cargando alumna…</div>}>
+              <Suspense
+                fallback={
+                  <div className="p-6 text-sm text-gray-500">
+                    Cargando alumna…
+                  </div>
+                }
+              >
                 <AlumnaDashboard />
               </Suspense>
             }

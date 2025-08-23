@@ -1,18 +1,18 @@
-import type { PagoAlumna } from "../../../types/alumna";
-import { fmtMoneda, fmtDia } from "../../../utils/format";
-import { toCsv, downloadCsv } from "../../../utils/csv";
+import type { PagoAlumna } from '../../../types/alumna';
+import { fmtMoneda, fmtDia } from '../../../utils/format';
+import { toCsv, downloadCsv } from '../../../utils/csv';
 
 export default function PagosPanel({ pagos }: { pagos: PagoAlumna[] }) {
   const exportarCSV = () => {
-    const rows = pagos.map(p => ({
+    const rows = pagos.map((p) => ({
       id: p.id,
-      fecha: p.fecha ? fmtDia(p.fecha) : "",
+      fecha: p.fecha ? fmtDia(p.fecha) : '',
       monto: p.monto ?? 0,
-      metodo: p.metodo ?? "",
-      nota: p.nota ?? "",
+      metodo: p.metodo ?? '',
+      nota: p.nota ?? '',
     }));
     const csv = toCsv(rows);
-    downloadCsv(csv, "pagos_alumna.csv");
+    downloadCsv(csv, 'pagos_alumna.csv');
   };
 
   return (
@@ -23,7 +23,7 @@ export default function PagosPanel({ pagos }: { pagos: PagoAlumna[] }) {
           onClick={exportarCSV}
           className="text-xs px-2 py-1 rounded bg-gray-900 text-white"
           disabled={pagos.length === 0}
-          title={pagos.length ? "Descargar CSV" : "Sin datos para exportar"}
+          title={pagos.length ? 'Descargar CSV' : 'Sin datos para exportar'}
         >
           Exportar CSV
         </button>
@@ -34,15 +34,22 @@ export default function PagosPanel({ pagos }: { pagos: PagoAlumna[] }) {
       ) : (
         <table className="w-full text-sm">
           <thead className="text-left opacity-70">
-            <tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Nota</th></tr>
+            <tr>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th>Método</th>
+              <th>Nota</th>
+            </tr>
           </thead>
           <tbody>
-            {pagos.map(p => (
+            {pagos.map((p) => (
               <tr key={p.id} className="border-t">
-                <td>{p.fecha ? fmtDia(p.fecha) : "—"}</td>
+                <td>{p.fecha ? fmtDia(p.fecha) : '—'}</td>
                 <td>{fmtMoneda(p.monto ?? 0)}</td>
-                <td>{p.metodo ?? "—"}</td>
-                <td className="max-w-[22rem] truncate" title={p.nota ?? ""}>{p.nota ?? "—"}</td>
+                <td>{p.metodo ?? '—'}</td>
+                <td className="max-w-[22rem] truncate" title={p.nota ?? ''}>
+                  {p.nota ?? '—'}
+                </td>
               </tr>
             ))}
           </tbody>

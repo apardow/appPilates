@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { DocumentoAlumna } from "../../../types/alumna";
+import { useState } from 'react';
+import type { DocumentoAlumna } from '../../../types/alumna';
 
 export default function DocumentosPanel({
   documentos,
@@ -23,7 +23,7 @@ export default function DocumentosPanel({
       onRefresh();
     } finally {
       setSubiendo(false);
-      e.currentTarget.value = "";
+      e.currentTarget.value = '';
     }
   };
 
@@ -43,8 +43,10 @@ export default function DocumentosPanel({
         <h2 className="font-semibold">Documentos</h2>
         <label className="text-xs cursor-pointer">
           <input type="file" className="hidden" onChange={handleUpload} />
-          <span className={`px-2 py-1 rounded text-white ${subiendo ? "bg-gray-400" : "bg-gray-900"}`}>
-            {subiendo ? "Subiendo…" : "Subir"}
+          <span
+            className={`px-2 py-1 rounded text-white ${subiendo ? 'bg-gray-400' : 'bg-gray-900'}`}
+          >
+            {subiendo ? 'Subiendo…' : 'Subir'}
           </span>
         </label>
       </div>
@@ -54,7 +56,10 @@ export default function DocumentosPanel({
       ) : (
         <ul className="text-sm space-y-1">
           {documentos.map((d) => (
-            <li key={d.id} className="flex items-center justify-between border p-2 rounded">
+            <li
+              key={d.id}
+              className="flex items-center justify-between border p-2 rounded"
+            >
               <div className="truncate max-w-[24rem]">
                 {d.url ? (
                   <a
@@ -64,10 +69,10 @@ export default function DocumentosPanel({
                     className="underline underline-offset-2 hover:opacity-80"
                     title={d.nombre}
                   >
-                    {d.nombre || "(Documento)"}
+                    {d.nombre || '(Documento)'}
                   </a>
                 ) : (
-                  <span title={d.nombre}>{d.nombre || "(Documento)"}</span>
+                  <span title={d.nombre}>{d.nombre || '(Documento)'}</span>
                 )}
               </div>
 
@@ -76,7 +81,7 @@ export default function DocumentosPanel({
                 className="px-2 py-1 rounded bg-red-600 text-white disabled:opacity-60"
                 disabled={borrando === d.id}
               >
-                {borrando === d.id ? "Eliminando…" : "Eliminar"}
+                {borrando === d.id ? 'Eliminando…' : 'Eliminar'}
               </button>
             </li>
           ))}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getPlanes,
   getActividades,
@@ -7,7 +7,7 @@ import {
   getResumen,
   uploadClienteDocumento,
   deleteClienteDocumento,
-} from "../data/alumnaApi";
+} from '../data/alumnaApi';
 
 import type {
   PlanAlumna,
@@ -15,9 +15,9 @@ import type {
   PagoAlumna,
   DocumentoAlumna,
   AlumnaResumen,
-} from "../types/alumna";
+} from '../types/alumna';
 
-type LoadState = "idle" | "loading" | "success" | "error";
+type LoadState = 'idle' | 'loading' | 'success' | 'error';
 
 export interface AlumnaData {
   planes: PlanAlumna[];
@@ -31,12 +31,14 @@ export interface AlumnaData {
 
 // deep getter por path "a.b.c"
 function getPath(o: any, path: string) {
-  return path.split(".").reduce((acc: any, k: string) => (acc == null ? acc : acc[k]), o);
+  return path
+    .split('.')
+    .reduce((acc: any, k: string) => (acc == null ? acc : acc[k]), o);
 }
 function pick<T = any>(o: any, keys: string[], fallback: T): T {
   for (const k of keys) {
     const v = getPath(o, k);
-    if (v !== undefined && v !== null && v !== "") return v as T;
+    if (v !== undefined && v !== null && v !== '') return v as T;
   }
   return fallback;
 }
@@ -49,12 +51,12 @@ function toNum(x: any, def = 0) {
 // Retorna el PRIMER string/number que encuentre (profundidad limitada).
 function deepFindByKey(o: any, keyRegex: RegExp, depth = 5): any {
   if (!o || depth < 0) return undefined;
-  if (typeof o !== "object") return undefined;
+  if (typeof o !== 'object') return undefined;
 
   for (const k of Object.keys(o)) {
     const v = (o as any)[k];
 
-    if (keyRegex.test(k) && (typeof v === "string" || typeof v === "number")) {
+    if (keyRegex.test(k) && (typeof v === 'string' || typeof v === 'number')) {
       return v;
     }
     if (Array.isArray(v)) {
@@ -62,7 +64,7 @@ function deepFindByKey(o: any, keyRegex: RegExp, depth = 5): any {
         const r = deepFindByKey(it, keyRegex, depth - 1);
         if (r !== undefined) return r;
       }
-    } else if (typeof v === "object" && v !== null) {
+    } else if (typeof v === 'object' && v !== null) {
       const r = deepFindByKey(v, keyRegex, depth - 1);
       if (r !== undefined) return r;
     }
@@ -82,84 +84,124 @@ function autoNombre(o: any, prefer: string[] = []): string | undefined {
 
 /* -------------------- normalizadores -------------------- */
 function normPlan(r: any): PlanAlumna {
-  const id = pick(r, ["id", "planId", "uid"], "(sin-id)");
+  const id = pick(r, ['id', 'planId', 'uid'], '(sin-id)');
   const nombre =
     autoNombre(r, [
-      "nombre",
-      "planNombre",
-      "plan.nombre",
-      "producto.nombre",
-      "servicio.nombre",
-      "titulo",
-      "name",
+      'nombre',
+      'planNombre',
+      'plan.nombre',
+      'producto.nombre',
+      'servicio.nombre',
+      'titulo',
+      'name',
     ]) ?? `(Plan #${id})`;
 
   return {
     id,
     nombre,
-    clasesTotales: toNum(pick(r, ["clasesTotales", "totalClases", "cupos", "clases", "total"], 0)),
-    clasesUsadas: toNum(pick(r, ["clasesUsadas", "usadas", "consumidas", "clases_consumidas"], 0)),
-    vencimiento: pick(r, ["vencimiento", "fechaVencimiento", "fecha_vencimiento", "expiraEl", "fechaFin", "fecha_fin"], null),
-    estado: pick(r, ["estado", "status", "estado_plan"], "VIGENTE"),
+    clasesTotales: toNum(
+      pick(r, ['clasesTotales', 'totalClases', 'cupos', 'clases', 'total'], 0),
+    ),
+    clasesUsadas: toNum(
+      pick(r, ['clasesUsadas', 'usadas', 'consumidas', 'clases_consumidas'], 0),
+    ),
+    vencimiento: pick(
+      r,
+      [
+        'vencimiento',
+        'fechaVencimiento',
+        'fecha_vencimiento',
+        'expiraEl',
+        'fechaFin',
+        'fecha_fin',
+      ],
+      null,
+    ),
+    estado: pick(r, ['estado', 'status', 'estado_plan'], 'VIGENTE'),
   } as PlanAlumna;
 }
 
 function normActividad(r: any): ActividadAlumna {
-  const id = pick(r, ["id", "actividadId", "uid"], "(sin-id)");
+  const id = pick(r, ['id', 'actividadId', 'uid'], '(sin-id)');
   const nombre =
     autoNombre(r, [
-      "nombre",
-      "titulo",
-      "actividad",
-      "servicioNombre",
-      "servicio.nombre",
-      "clase.servicio.nombre",
-      "tipoActividad",
+      'nombre',
+      'titulo',
+      'actividad',
+      'servicioNombre',
+      'servicio.nombre',
+      'clase.servicio.nombre',
+      'tipoActividad',
     ]) ?? `(Actividad #${id})`;
 
   return {
     id,
     nombre,
-    fecha: pick(r, ["fecha", "fechaISO", "fecha_inicio", "inicio", "start", "dia"], ""),
-    hora: pick(r, ["hora", "hora_inicio", "time", "start_time", "inicio_hora"], ""),
+    fecha: pick(
+      r,
+      ['fecha', 'fechaISO', 'fecha_inicio', 'inicio', 'start', 'dia'],
+      '',
+    ),
+    hora: pick(
+      r,
+      ['hora', 'hora_inicio', 'time', 'start_time', 'inicio_hora'],
+      '',
+    ),
     sucursal:
-      autoNombre(r, ["sucursal", "sucursalNombre", "sede", "local", "centro", "branch", "sucursal.nombre", "sede.nombre"]) ??
-      pick(r, ["sucursal", "sede", "local", "branch"], ""),
-    estado: pick(r, ["estado", "status"], "ACTIVA"),
+      autoNombre(r, [
+        'sucursal',
+        'sucursalNombre',
+        'sede',
+        'local',
+        'centro',
+        'branch',
+        'sucursal.nombre',
+        'sede.nombre',
+      ]) ?? pick(r, ['sucursal', 'sede', 'local', 'branch'], ''),
+    estado: pick(r, ['estado', 'status'], 'ACTIVA'),
   } as ActividadAlumna;
 }
 
 function normPago(r: any): PagoAlumna {
   return {
-    id: pick(r, ["id", "pagoId", "uid"], "(sin-id)"),
-    fecha: pick(r, ["fecha", "fechaISO", "fecha_pago"], ""),
-    monto: toNum(pick(r, ["monto", "amount", "valor"], 0)),
-    metodo: pick(r, ["metodo", "medio", "metodo_pago", "paymentMethod"], ""),
-    nota: pick(r, ["nota", "observacion", "detalle"], ""),
+    id: pick(r, ['id', 'pagoId', 'uid'], '(sin-id)'),
+    fecha: pick(r, ['fecha', 'fechaISO', 'fecha_pago'], ''),
+    monto: toNum(pick(r, ['monto', 'amount', 'valor'], 0)),
+    metodo: pick(r, ['metodo', 'medio', 'metodo_pago', 'paymentMethod'], ''),
+    nota: pick(r, ['nota', 'observacion', 'detalle'], ''),
   } as PagoAlumna;
 }
 
 function normDocumento(r: any): DocumentoAlumna {
   return {
-    id: pick(r, ["id", "docId", "uid"], "(sin-id)"),
-    nombre: autoNombre(r, ["nombre", "fileName", "titulo"]) ?? "(Documento)",
-    url: pick(r, ["url", "link", "href"], undefined),
+    id: pick(r, ['id', 'docId', 'uid'], '(sin-id)'),
+    nombre: autoNombre(r, ['nombre', 'fileName', 'titulo']) ?? '(Documento)',
+    url: pick(r, ['url', 'link', 'href'], undefined),
   } as DocumentoAlumna;
 }
 
 function normResumen(r: any): AlumnaResumen {
   return {
     nombre:
-      autoNombre(r, ["nombre", "nombreCompleto", "cliente.nombre", "fullName", "persona.nombre"]) ??
-      "",
-    planesActivos: toNum(pick(r, ["planesActivos", "activos", "planes_activos"], 0)),
-    clasesTomadas: toNum(pick(r, ["clasesTomadas", "clases_tomadas", "totalClasesTomadas"], 0)),
+      autoNombre(r, [
+        'nombre',
+        'nombreCompleto',
+        'cliente.nombre',
+        'fullName',
+        'persona.nombre',
+      ]) ?? '',
+    planesActivos: toNum(
+      pick(r, ['planesActivos', 'activos', 'planes_activos'], 0),
+    ),
+    clasesTomadas: toNum(
+      pick(r, ['clasesTomadas', 'clases_tomadas', 'totalClasesTomadas'], 0),
+    ),
   } as AlumnaResumen;
 }
 
 /* -------------------- hook -------------------- */
 export function useAlumnaDashboard(alumnaId?: string) {
-  const [state, setState] = useState<LoadState>("idle");
+  const [state, setState] = useState<LoadState>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<AlumnaData>({
     planes: [],
@@ -176,7 +218,7 @@ export function useAlumnaDashboard(alumnaId?: string) {
     abortRef.current = new AbortController();
     const signal = abortRef.current.signal;
 
-    setState("loading");
+    setState('loading');
     setError(null);
     try {
       // Si tu alumnaApi NO acepta { signal }, elimina ese segundo parámetro.
@@ -196,16 +238,22 @@ export function useAlumnaDashboard(alumnaId?: string) {
       const resumen = rr ? normResumen(rr) : null;
 
       setData({ planes, actividades, pagos, documentos, resumen });
-      setState("success");
+      setState('success');
 
       if (import.meta.env.DEV) {
-        console.debug("[AlumnaDashboard RAW]", { rp, ra, rpg, rd, rr });
-        console.debug("[AlumnaDashboard NORM]", { planes, actividades, pagos, documentos, resumen });
+        console.debug('[AlumnaDashboard RAW]', { rp, ra, rpg, rd, rr });
+        console.debug('[AlumnaDashboard NORM]', {
+          planes,
+          actividades,
+          pagos,
+          documentos,
+          resumen,
+        });
       }
     } catch (e: any) {
-      if (e?.name === "AbortError") return;
+      if (e?.name === 'AbortError') return;
       setError(e);
-      setState("error");
+      setState('error');
     }
   };
 
@@ -217,12 +265,15 @@ export function useAlumnaDashboard(alumnaId?: string) {
 
   const totalPagado = useMemo(
     () => data.pagos.reduce((acc, p) => acc + (p.monto ?? 0), 0),
-    [data.pagos]
+    [data.pagos],
   );
 
   const actividadesFuturas = useMemo(
-    () => data.actividades.filter(a => (a.fecha ? new Date(a.fecha) : new Date(0)) >= new Date()),
-    [data.actividades]
+    () =>
+      data.actividades.filter(
+        (a) => (a.fecha ? new Date(a.fecha) : new Date(0)) >= new Date(),
+      ),
+    [data.actividades],
   );
 
   return {
@@ -232,7 +283,9 @@ export function useAlumnaDashboard(alumnaId?: string) {
     totalPagado,
     actividadesFuturas,
     reload: load,
-    uploadClienteDocumento: (file: File) => uploadClienteDocumento(file, alumnaId),
-    deleteClienteDocumento: (docId: string) => deleteClienteDocumento(docId, alumnaId),
+    uploadClienteDocumento: (file: File) =>
+      uploadClienteDocumento(file, alumnaId),
+    deleteClienteDocumento: (docId: string) =>
+      deleteClienteDocumento(docId, alumnaId),
   };
 }
