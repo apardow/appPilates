@@ -1,30 +1,30 @@
-﻿import axios from 'axios';
+﻿import axios from "axios";
 
-const API_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
+const API_URL = ((import.meta.env.VITE_API_URL as string) || "https://api.espaciopilatescl.cl").replace(/\/$/, "");
 
-// Todas las APIs viven bajo /api
+// Cliente por defecto SIN cookies (evitamos CORS en GET)
 export const api = axios.create({
-  baseURL: ${API_URL}/api,
-  withCredentials: true, // necesario para cookies de Sanctum
+  baseURL: API_URL + "/api",
+  withCredentials: false,
 });
 
 let csrfFetched = false;
 
 api.interceptors.request.use(async (config) => {
-  const method = (config.method || 'get').toLowerCase();
-  const mutating = ['post', 'put', 'patch', 'delete'].includes(method);
-  // Antes de la primera mutación, asegúrate del CSRF cookie
-  if (mutating && !csrfFetched) {
-    await axios.get(${API_URL}/sanctum/csrf-cookie, { withCredentials: true });
-    csrfFetched = true;
+  const method = (config.method ?? "get").toLowerCase();
+  const mutating = ["post", "put", "patch", "delete"].includes(method);
+  if (mutating) {
+    // Sólo para mutaciones pedimos cookie CSRF y habilitamos credenciales
+    if (!csrfFetched) {
+      await axios.get(API_URL + "/sanctum/csrf-cookie", { withCredentials: true });
+      csrfFetched = true;
+    }
+    config.withCredentials = true;
   }
   return config;
 });
 
 api.interceptors.response.use(
   (r) => r,
-  (error) => {
-    // Aquí podrías centralizar 401/419, logs, etc.
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );

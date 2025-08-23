@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
 // Componentes de Layout
@@ -24,8 +24,9 @@ import AsignarPlan from './views/AsignarPlan';
 // --- IMPORTACIONES NUEVAS ---
 import ServiciosView from './views/ServiciosView';
 import ServicioForm from './views/ServicioForm';
-// 👇 NUEVO: vista de Alumna
-import AlumnaDashboard from './views/AlumnaDashboard';
+
+// 👇 NUEVO: carga diferida del dashboard de Alumna (ruta y carpeta nuevas)
+const AlumnaDashboard = lazy(() => import('./views/alumna/AlumnaDashboard'));
 
 // --- Componente de Layout Principal ---
 const AppLayout: React.FC = () => {
@@ -52,7 +53,6 @@ const App: React.FC = () => {
           <Route path="calendario" element={<CalendarView />} />
 
           {/* --- RUTA DE REDIRECCIÓN AÑADIDA --- */}
-          {/* Si se intenta ir a /calendar, redirige a /calendario. */}
           <Route path="calendar" element={<Navigate to="/calendario" replace />} />
 
           {/* Módulo de Clientes */}
@@ -94,8 +94,15 @@ const App: React.FC = () => {
           <Route path="servicios/nuevo" element={<ServicioForm />} />
           <Route path="servicios/editar/:id" element={<ServicioForm />} />
 
-          {/* --- RUTA NUEVA: DASHBOARD DE ALUMNA --- */}
-          <Route path="alumna/:id" element={<AlumnaDashboard />} />
+          {/* --- RUTA NUEVA: DASHBOARD DE ALUMNA (carga diferida) --- */}
+          <Route
+            path="alumna/:id"
+            element={
+              <Suspense fallback={<div className="p-6 text-sm text-gray-500">Cargando alumna…</div>}>
+                <AlumnaDashboard />
+              </Suspense>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

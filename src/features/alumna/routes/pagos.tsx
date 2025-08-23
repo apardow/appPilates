@@ -1,8 +1,13 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { getPagos } from "../api/alumna.api";
+import { useAlumnaId } from "../api/useAlumnaId";
 
 export default function Pagos() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["pagos"], queryFn: getPagos });
+  const id = useAlumnaId();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["pagos", id],
+    queryFn: () => getPagos(id),
+  });
 
   if (isLoading) return <div>Cargando pagos…</div>;
   if (error) return <div>Ocurrió un error al cargar los pagos</div>;

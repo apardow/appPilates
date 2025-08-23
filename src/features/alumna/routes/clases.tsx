@@ -1,8 +1,13 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { getClases } from "../api/alumna.api";
+import { useAlumnaId } from "../api/useAlumnaId";
 
 export default function Clases() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["clases"], queryFn: getClases });
+  const id = useAlumnaId();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["clases", id],
+    queryFn: () => getClases(id),
+  });
 
   if (isLoading) return <div>Cargando clases…</div>;
   if (error) return <div>Ocurrió un error al cargar las clases</div>;

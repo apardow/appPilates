@@ -1,8 +1,13 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { getReservas } from "../api/alumna.api";
+import { useAlumnaId } from "../api/useAlumnaId";
 
 export default function Reservas() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["reservas"], queryFn: getReservas });
+  const id = useAlumnaId();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["reservas", id],
+    queryFn: () => getReservas(id),
+  });
 
   if (isLoading) return <div>Cargando reservas…</div>;
   if (error) return <div>Ocurrió un error al cargar las reservas</div>;

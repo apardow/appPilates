@@ -1,8 +1,13 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { getPerfil } from "../api/alumna.api";
+import { useAlumnaId } from "../api/useAlumnaId";
 
 export default function Perfil() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["perfil"], queryFn: getPerfil });
+  const id = useAlumnaId();
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["perfil", id],
+    queryFn: () => getPerfil(id),
+  });
 
   if (isLoading) return <div>Cargando perfil…</div>;
   if (error) return <div>Ocurrió un error al cargar el perfil</div>;
